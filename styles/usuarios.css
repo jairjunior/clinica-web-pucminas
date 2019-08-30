@@ -1,0 +1,119 @@
+body, html {
+    height: 100%;
+}
+.fa-clinic-medical{
+     margin-right: 10px;
+}
+#projectName {
+     margin-top: 7px;
+     margin-bottom: 10px;
+}
+.navbar{
+     background-color: darkslategray;
+}
+nav > div.container{
+     position: relative;
+     color: white;
+}
+#navbarNav{
+     position: absolute;
+     right: 20px;
+}
+.nav-item.active{
+     text-shadow: 0px 0px 7px #FFFFFF,
+     7px 0px 20px rgba(255, 255, 255, 0.80),
+     0px 5px 20px rgba(255, 255, 255, 0.80),
+     -7px 0px 20px rgba(255, 255, 255, 0.80),
+     0px -5px 20px rgba(255, 255, 255, 0.80);
+}
+.navbar-link:hover{
+     background-color:rgba(38, 63, 63, 0.4);
+     border-radius: 15px;
+}
+.navbar-logout{
+     color: black!important;
+}
+#containerBody{
+     margin-top: 0px;
+     margin-bottom: 100px;
+     
+}
+.nav-tabs .nav-link.active {
+     background-color: #f8f8f8;
+ }
+
+
+
+.heading > h2{
+     padding-top: 50px;
+}
+.heading > p{
+     margin-bottom: 50px;
+}
+
+
+
+.box-add-btn{
+     margin: 0px 0px 30px;
+     padding: 0px;
+}
+
+
+
+legend{
+     font-size: 1rem;
+     font-weight: 400;
+     line-height: 1.5;
+     color: #212529;
+     text-align: left;
+}
+
+
+
+.tabela-usuarios .th-nome{
+     width: 50%;
+}
+.tabela-usuarios .th-email{
+     width: 30%;
+}
+.clickable-row:hover{
+     background-color: rgba(94, 94, 94, 0.068);
+     cursor: pointer;
+}
+
+footer{
+     position: fixed;
+     bottom: 0px;
+     width: 100%;
+     padding: 3px;
+     background-color: darkslategray;
+     color: lightgray;
+}
+footer > p{
+     margin-bottom: 0px;
+}
+#selecionePaciente{
+     color: red!important;
+}
+
+
+
+
+
+/* Para telas de até 767px (Small) */
+@media only screen and (max-width: 767px) {
+     #projectName {
+          font-size: 1.40rem;
+          margin-top: 3px;
+          margin-bottom: 3px;
+      }
+     nav > div.container{
+          padding: 0px;
+     }
+}
+/* Para telas de até 575px (Extra Small) */
+@media only screen and (max-width: 575px) {
+     #projectName {
+         font-size: 0.96rem;
+     }
+}

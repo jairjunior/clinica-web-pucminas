@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="description" content="Sistema de Gestão de Clínica Médica">
+     <meta name="author" content="Jair Dias de Oliveira Junior">
+     <meta name="keywords" content="PUC Minas,Pós-Graduação,Desenvolvimento de Aplicações Web, Aplicação Web, Sistema de Gestão">
+
+     <title>Medicamentos | Sistema de Gestão de Clínica Médica</title>
+
+     <!-- Bootstrap 4.3.1 CSS -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+     <!-- Font Awesome 5.8.1 -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+     <!-- Moment.js library -->
+     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+
+     <!-- Meus estilos -->
+     <link rel="stylesheet" type="text/css" href="/styles/usuarios.css">
+
+     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+     <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+     <![endif]-->
+
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+     <!-- jQuery fancyTable package v1.0.15 -->
+     <script src="https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js"></script>
+
+</head>
+<body>
+
+<!-- Injetando as variáveis de seção no código JavaScript-->
+<% if(sessionData){%>
+     <span id="loggedUserID" hidden><%= sessionData.id %></span>
+<% } %>
+
+
+
+<!-- BARRA DE NAVEGAÇÃO superior -->
+<nav class="navbar navbar-expand-lg navbar-light">
+     <div class="container">
+          <span class="navbar-brand mb-0 h1 text-white">
+               <i class="fas fa-clinic-medical"></i> Clínica-Web
+          </span>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar Navegação">
+               <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+               <ul class="navbar-nav .text-white">
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/agenda">AGENDA</span></a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/exames">EXAMES</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item active">
+                         <a class="nav-link text-white" href="/medicamentos">MEDICAMENTOS <span class="sr-only">(menu atual)</a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/pacientes/consultas">PACIENTES</a>
+                         </li>
+                    <% } %>
+                    
+                    <% if(sessionData.perfil =='recepcionista'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/usuarios/pacientes">USUÁRIOS</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item dropdown navbar-link">
+                         <a class="nav-link dropdown-toggle navbar-logout" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <strong>LOGOUT</strong>
+                         </a>
+                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              <a class="dropdown-item" href="/logout">
+                                   <%= sessionData.nome +' ('+ sessionData.perfil.charAt(0).toUpperCase() + sessionData.perfil.slice(1) +') '; %>
+                                   <i class="fas fa-sign-out-alt"></i>
+                              </a>
+                         </div>
+                    </li>
+               </ul>
+          </div>
+     </div>
+</nav>
+
+
+<!-- CORPO PRINCIPAL DA PÁGINA -->
+<div class="container" id="containerBody">
+     
+
+     <!-- TÍTULO da página e breve explicação -->
+     <div class="heading">
+          <h2 class="text-center">
+                    <i class="fas fa-capsules"></i>
+               Medicamentos
+          </h2>
+          <p class="text-center">
+               Medicamentos cadastrados no sistema.
+               <br/ >
+               Cadastre um novo medicamento ou prescreva uma receita.
+          </p>
+     </div>
+
+
+     <!-- CAMPO DE BUSCA e BOTÃO para ações (cadastrar, receitar, excluir) -->
+     <div class="container box-add-btn row">
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+          <!-- BOTÃO -->
+          <div class="btn-group col-12 col-sm-6 col-lg-4">
+               <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Ações
+               </button>
+               <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalCadastrarMedicamento">Cadastrar Novo Medicamento</a>
+                    <% if(sessionData.perfil == 'medico'){ %>
+                         <div class="dropdown-divider"></div>
+                         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalReceitarMedicamentos">Receitar Medicamentos</a>
+                    <% } %>
+               </div>
+          </div>
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+     </div>
+
+
+
+
+     <!-- ALERTAS para exclusão, edição e inserção de medicamentos -->
+     <div id="divAlerts">
+
+     </div>
+
+
+
+
+     <!-- MODAL para CADASTRAR medicamento -->
+     <div class="modal fade" id="modalCadastrarMedicamento" tabindex="-1" role="dialog" aria-labelledby="modalCadastrarMedLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalCadastrarMedLabel">Cadastrar Medicamento</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <!-- FORMULÁRIO para CADASTRAR dados de um medicamento -->
+                         <form role="form" action="/medicamentos/cadastrar" method="POST" id="formCadastrarMedicamento">
+                              <!-- Campo Produto -->
+                              <div class="form-group">
+                                   <label for="inputProduto">Produto:</label>
+                                   <input type="text" name="produto" class="form-control" id="inputProduto" required>
+                              </div>
+                              <!-- Campo Princípio Ativo -->
+                              <div class="form-group">
+                                   <label for="inputPrincipioAtivo">Princípio Ativo:</label>
+                                   <input type="text" name="principio" class="form-control" id="inputPrincipioAtivo" required>
+                              </div>
+                              <!-- Campo Apresentação -->
+                              <div class="form-group">
+                                   <label for="inputApresentacao">Apresentação:</label>
+                                   <input type="text" name="apresentacao" class="form-control" id="inputApresentacao" required>
+                              </div>
+                              <!-- Campo Fabricante -->
+                              <div class="form-group">
+                                   <label for="inputFabricante">Fabricante:</label>
+                                   <input type="text" name="fabricante" class="form-control" id="inputFabricante" required>
+                              </div>
+                         </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                         <button type="submit" class="btn btn-success" form="formCadastrarMedicamento">Salvar</button>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+
+
+     <!-- MODAL para EDITAR medicamento -->
+     <div class="modal fade" id="modalEditarMedicamento" tabindex="-1" role="dialog" aria-labelledby="modalEditarMedLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalEditarMedLabel">Editar Medicamento</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <!-- FORMULÁRIO para EDITAR dados de um medicamento -->
+                         <form role="form" action="" method="POST" id="formEditarMedicamento">
+
+                              <!-- Campo ID (escondido) -->
+                              <input type="text" name="id" id="editID" hidden>
+
+                              <!-- Campo Produto -->
+                              <div class="form-group">
+                                   <label for="inputProduto">Produto:</label>
+                                   <input type="text" name="produto" class="form-control" id="editProduto" required>
+                              </div>
+                              <!-- Campo Princípio Ativo -->
+                              <div class="form-group">
+                                   <label for="inputPrincipioAtivo">Princípio Ativo:</label>
+                                   <input type="text" name="principio" class="form-control" id="editPrincipioAtivo" required>
+                              </div>
+                              <!-- Campo Apresentação -->
+                              <div class="form-group">
+                                   <label for="inputApresentacao">Apresentação:</label>
+                                   <input type="text" name="apresentacao" class="form-control" id="editApresentacao" required>
+                              </div>
+                              <!-- Campo Fabricante -->
+                              <div class="form-group">
+                                   <label for="inputFabricante">Fabricante:</label>
+                                   <input type="text" name="fabricante" class="form-control" id="editFabricante" required>
+                              </div>
+                         </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnFecharCancelar">Cancelar</button>
+                         <button type="button" class="btn btn-info" id="btnEditar">Editar</button>
+                         <button type="button" class="btn btn-danger" id="btnExcluir">Excluir</button>
+                         <button type="submit" class="btn btn-success" id="btnSalvar" form="formEditarMedicamento">Salvar</button>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+
+
+     <!-- MODAL para RECEITAR medicamentos para pacientes -->
+     <div class="modal fade" id="modalReceitarMedicamentos" tabindex="-1" role="dialog" aria-labelledby="modalReceitarMedLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalReceitarMedLabel">Receitar Medicamentos</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <form role="form" action="" method="PUT" id="formReceitarMedicamentos">
+                              
+                              <div class="form-group">
+                                   <label for="pacienteReceitar">Escolha o paciente:</label>
+                                   <select class="form-control" id="pacienteReceitar">
+                                        <option value="">Pacientes...</option>
+                                   </select>
+                              </div>
+                              <small id="selecionePaciente" class="form-text text-muted" hidden>Obrigatório selecionar um paciente.</small>
+
+                              <div class="medicamentos-receitados">
+                                   <p>Medicamentos:</p>
+                                   <ul class="list-group" id="listaMedPrescritos"></ul>
+                              </div>
+                              
+                              <div class="form-group">
+                                   <label for="inputObservacoes">Observações:</label>
+                                   <textarea class="form-control" id="inputObservacoes" rows="7"></textarea>
+                              </div>
+                         </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                         <button type="button" class="btn btn-success" id="btnReceitarMedicamentos" onclick="botaoReceitarMedicamentos()">Salvar</button>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+
+
+     <!-- TABELA com lista de medicamentos -->
+     <div id="tabelaMedicamentos">
+          
+          <% if( !medicamentos || medicamentos.length == 0 ){ %>
+               <p>Não existem medicamentos cadastrados no sistema...</p>
+          <% }else{ %>
+               <table class="table tabela-medicamentos">
+                    <thead>
+                         <tr>
+                              <th scope="col"> </th>
+                              <th scope="col">Produto</th>
+                              <th scope="col">Princípio Ativo</th>
+                              <th scope="col">Fabricante</th>
+                         </tr>
+                    </thead>
+                    <tbody>
+                         <!-- Varre a agenda do paciente -->
+                         <% medicamentos.forEach( (remedio, key) => { %>
+                              <!-- Constrói tabela com os dados dos medicamentos -->
+                              <tr class="clickable-row" id="row_<%= key %>">
+                                   <td class="td-id" hidden><%= remedio._id %></td>
+                                   <td class="td-checkbox">
+                                        <input type='checkbox' name="nomeMedicamento" value='<%= remedio.produto +" - "+ remedio.apresentacao +" - "+ remedio.principio.charAt(0).toUpperCase() + remedio.principio.slice(1).toLowerCase() +" - "+ remedio.fabricante.toUpperCase() %>'>
+                                   </td>
+                                   <td class="clickable-cell">
+                                        <%= remedio.produto +' - '+ remedio.apresentacao %>
+                                   </td>
+                                   <td class="clickable-cell">
+                                        <%=  remedio.principio.charAt(0).toUpperCase() + remedio.principio.slice(1).toLowerCase() %>
+                                   </td>
+                                   <td class="clickable-cell">
+                                        <%= remedio.fabricante.toUpperCase() %>
+                                   </td>
+                              </tr>
+                         <% }); %>
+                    </tbody>
+               </table>
+          <% } %>
+          
+     </div><!--/tabelaMedicamentos-->
+</div><!--/containerBody-->
+
+
+
+<!-- Rodapé da página -->
+<footer>
+	<p class="text-center">Copyright <i class="far fa-copyright"></i> 2019</p>
+	<p class="text-center">Jair Junior</p>
+</footer>
+
+
+
+<script type="text/javascript">
+
+     // Ao clicar no botão "Salvar" no modal de receitar medicamentos
+     // Essa função é acionada para tratar os dados do formulário e enviá-los ao servidor
+     function botaoReceitarMedicamentos(){
+          var idPaciente = $("#pacienteReceitar option:selected").val();
+          var idMedico = $('#loggedUserID').text();
+          var arrayMedicamentos = new Array();
+          $("#listaMedPrescritos li").each(function(){
+               arrayMedicamentos.push( $(this).text() );
+          });
+          var observacoes = $("#inputObservacoes").val();
+          var data = moment().format("DD/MM/YYYY");
+
+          // Verifica se um paciente foi selecionado
+          if(idPaciente == ""){
+               $("#selecionePaciente").prop('hidden', false);
+               $("#pacienteReceitar").focus();
+               return;
+          } else $("#selecionePaciente").prop('hidden', true);
+
+          // Esconde o MODAL
+          $("#modalReceitarMedicamentos").modal("hide");
+     
+          //Prepara dados e envia por AJAX
+          var obj = { 
+               'idMedico': idMedico,
+               'medicamentos': arrayMedicamentos,
+               'obs': observacoes,
+               'data': data
+          };
+          var url = "/medicamentos/receitar/" + idPaciente;
+          $.ajax({
+               url: url,
+               type: "PUT",
+               data: obj,
+               success: function(data, textStatus, jqXHR){
+                    console.log("Retorno do servidor: ", textStatus, data);
+                    
+                    var href = window.location.href;
+                    console.log("href: ", href);
+                    if(href.indexOf("?") > -1){
+                         var newURL = href.split("?")[0] + "?receitar=success";
+                         window.location.href = newURL;
+                    }
+                    else{
+                         window.location.href += "?receitar=success";
+                    }
+               },
+               error: function(jqXHR, textStatus, errorThrown){
+                    console.log("Erro ao receitar medicamento(s)!");
+               }
+          });
+     }
+
+
+
+
+     $(document).ready(function(){
+
+          // Mostra ALERTAS no topo da página quando uma ação é realizada
+          let search = window.location.search;
+          if( (search.length > 0) && (search.charAt(0) == '?') ){
+               search = search.slice(1, search.length);               // Retira o ? do início
+               var params = search.split("&");                        // Separa os parâmetros
+
+               params.forEach( (value) => {
+                    let keyValue = value.split("=");
+                    if(keyValue[0] == "receitar"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Receita <strong>prescrita com sucesso</strong> para o paciente.<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+                    if(keyValue[0] == "created"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Medicamento <strong>cadastrado com sucesso</strong> no Banco de Dados!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+                    if(keyValue[0] == "edited"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Medicamento <strong>editado com sucesso</strong> no Banco de Dados!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+                    if(keyValue[0] == "deleted"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-danger alert-dismissible fade show' role='alert'> Medicamento <strong>excluído com sucesso</strong> do Banco de Dados!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+               });
+          }
+
+          // Configurações da tabela dinâmica
+          $(".tabela-medicamentos").fancyTable({
+               sortColumn: 0,
+               searchable: true,
+               globalSearch: true,
+               inputPlaceholder: ' Pesquisar...'
+          });
+
+
+          // MOSTRAR INFORMAÇÕES DO MEDICAMENTO
+          // Quando clicar sobre uma linha da tabela que corresponde a um medicamento.
+          // A identificação é feita através do seu ID em um campo escondido na tabela (.td-id).
+          $(".clickable-cell").click( function(){
+               // Abre o modal com informações do medicamento
+               $("#modalEditarMedicamento").modal("show");
+               // Botões do modal
+               $("#btnFecharCancelar").text("Fechar");
+               $("#btnEditar").show();
+               $("#btnSalvar").hide();
+               $("#btnExcluir").hide();
+               
+               //Pega o id do medicamento e monta URL
+               var id = $(this).closest('tr').find('.td-id').text();
+               var url = "/medicamento/get/" + id;
+               // Resgata dados do servidor e preenche o formulário
+               $.get(url, function(data){                         
+                         // Preenche formulário
+                         $("#editID").val(data._id);
+                         $("#editProduto").val(data.produto).prop("readonly", true);
+                         $("#editPrincipioAtivo").val(data.principio).prop("readonly", true);
+                         $("#editApresentacao").val(data.apresentacao).prop("readonly", true);
+                         $("#editFabricante").val(data.fabricante).prop("readonly", true);
+               })
+               .fail(function(err){
+                    console.log(err);
+                    $("#divAlerts").html(
+                         "<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Erro</strong> ao resgatar dados do medicamento! <button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                    );
+               });
+          });
+
+
+          // FORMULÁRIO DE EDIÇÃO (medicamento)
+          // Quando clica no botão Editar, todos os campos ficam habilitados para a edição
+          // Os botões também são alterados para Cancelar e Salvar
+          $("#btnEditar").click(function() {
+               $("#editProduto").prop("readonly", false);
+               $("#editPrincipioAtivo").prop("readonly", false);
+               $("#editApresentacao").prop("readonly", false);
+               $("#editFabricante").prop("readonly", false);
+               // Botões
+               $("#btnFecharCancelar").text("Cancelar");
+               $("#btnEditar").hide();
+               $("#btnExcluir").show();
+               $("#btnSalvar").show();
+               // Por útimo, pega o ID do paciente e prepara o atributo action do Formulário Editar
+               // Pra quando salvar a edição, o formulário ser submetido para uma rota específica no servidor
+               let id = $("#editID").val();
+               let url = "/medicamento/editar/" + id;
+               $("#formEditarMedicamento").prop("action", url);
+          });
+
+
+          // Ações que acontecem ao abrir o MODAL PARA RECEITAR MEDICAMENTOS.
+          $('#modalReceitarMedicamentos').on('shown.bs.modal', function(){
+               $("#listaMedPrescritos").empty();
+               let url = "/usuarios/pacientes/min/get";
+               // Método GET para buscar nomes de todos os pacientes cadastrados
+               $.get(url, function(data){
+                    data.forEach( (value, key) => {
+                         let nomeCompleto = value.nome.charAt(0).toUpperCase() + value.nome.slice(1) + " " + value.sobrenome.charAt(0).toUpperCase() + value.sobrenome.slice(1);
+                         let nascimento = value.nascimento.split("-");
+                         let nomePaciente = nomeCompleto + " - " + nascimento[2]+"/"+nascimento[1]+"/"+nascimento[0];
+                         $("#pacienteReceitar").append("<option value='"+value.id+"'>"+nomePaciente+"</option>");
+                    });
+                    $("#pacienteReceitar option[value='']").prop('disabled', true);
+                    
+                    // Pega todos os medicamentos selecionados
+                    var arrayMedicamentos = new Array();
+                    $("#tabelaMedicamentos input:checked").each(function(){
+                         arrayMedicamentos.push( $(this).attr('value') );
+                    });
+                    // Adiciona medicamentos selecionados na lista do MODAL
+                    arrayMedicamentos.forEach( (value, key) => {
+                         $("#listaMedPrescritos").append("<li class='list-group-item'>"+value+"</li>");
+                    });
+               });
+          });
+
+
+          // EXCLUIR MEDICAMENTO
+          // Faz uma requisição HTTP do tipo DELETE para excluir o usuário
+          // Se der erro, mostra um alert amarelo no topo da página
+          // Se der certo, mostra um alert vermelho ao recarregar a página
+          $("#btnExcluir").click( function(){
+               var id = $("#editID").val();
+
+               $.ajax({
+                    url: "/medicamento/deletar/" + id,
+                    type: "DELETE",
+                    success: function(data, textStatus, jqXHR){
+                         $("#modalEditarMedicamento").modal("hide");
+                         var href = window.location.href;
+                         if(href.indexOf("?") > -1){
+                              var newURL = href.split("?")[0] + "?deleted=success";
+                              window.location.href = newURL;
+                         }
+                         else{
+                              window.location.href += "?deleted=success";
+                         }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                         $("#modalEditarUsuario").modal("hide");
+                         $("#divAlerts").html(
+                              "<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Erro</strong> ao deletar medicamento do Banco de Dados! <button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                         );
+                    }
+               });
+          });
+
+
+
+     });
+</script>
+
+
+
+<!-- Popper.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<!-- Bootstrap JavaScript plugin -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>

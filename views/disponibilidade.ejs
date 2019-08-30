@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="description" content="Sistema de Gestão de Clínica Médica">
+     <meta name="author" content="Jair Dias de Oliveira Junior">
+     <meta name="keywords" content="PUC Minas,Pós-Graduação,Desenvolvimento de Aplicações Web, Aplicação Web, Sistema de Gestão">
+
+     <title>Agenda | Sistema de Gestão de Clínica Médica</title>
+
+     <!-- Bootstrap 4.3.1 CSS -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+     <!-- Font Awesome 5.8.1 -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+     <!-- Moment.js library -->
+     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+
+     <!-- Meus estilos -->
+     <link rel="stylesheet" type="text/css" href="/styles/usuarios.css">
+     <link rel="stylesheet" type="text/css" href="/styles/agenda.css">
+
+     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+     <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+     <![endif]-->
+
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+     <!-- jQuery fancyTable package v1.0.15 -->
+     <script src="https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js"></script>
+
+</head>
+<body>
+
+<!-- BARRA DE NAVEGAÇÃO superior -->
+<nav class="navbar navbar-expand-lg navbar-light">
+     <div class="container">
+          <span class="navbar-brand mb-0 h1 text-white">
+               <i class="fas fa-clinic-medical"></i> Clínica-Web
+          </span>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar Navegação">
+               <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+               <ul class="navbar-nav">
+                    <li class="nav-item active">
+                         <a class="nav-link text-white" href="/agenda">AGENDA <span class="sr-only">(menu atual)</span></a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/exames">EXAMES</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/medicamentos">MEDICAMENTOS</a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/pacientes/consultas">PACIENTES</a>
+                         </li>
+                    <% } %>
+                    
+                    <% if(sessionData.perfil =='recepcionista'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/usuarios/pacientes">USUÁRIOS</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item dropdown navbar-link">
+                         <a class="nav-link dropdown-toggle navbar-logout" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <strong>LOGOUT</strong>
+                         </a>
+                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              <a class="dropdown-item" href="/logout">
+                                   <%= sessionData.nome +' ('+ sessionData.perfil.charAt(0).toUpperCase() + sessionData.perfil.slice(1) +') '; %>
+                                   <i class="fas fa-sign-out-alt"></i>
+                              </a>
+                         </div>
+                    </li>
+               </ul>
+          </div>
+     </div>
+</nav>
+
+
+<!-- CORPO PRINCIPAL DA PÁGINA -->
+<div class="container" id="containerBody">
+
+     <!-- TÍTULO da página e breve explicação -->
+     <div class="heading">
+          <h2 class="text-center">
+               <i class="far fa-calendar-alt"></i>
+               Agenda
+          </h2>
+          <p class="text-center">Selecione um médico cadastrado para visualizar suas consultas/disponibilidade.</p>
+     </div>
+
+     <!-- Caixa com seletor para escolher Médico -->
+     <div class="container box-select-med row">
+          <% if(sessionData.perfil == 'medico') { %>
+               <select name="medicos" class="custom-select" id="selectMedicos" disabled>
+               <option value="<%= 'perfilMedicoFixo: '+ sessionData.id %>"><%= sessionData.nome + ' ' + sessionData.sobrenome + ' - ' + sessionData.especialidade.charAt(0).toUpperCase() + sessionData.especialidade.slice(1); %></option>
+          <% } else { %>
+               <select name="medicos" class="custom-select" id="selectMedicos">
+               <option value="">Selecione um médico...</option>
+               <% medicos.forEach( (data, key) => { %>
+                    <% if(data.perfil != 'medico') { %>
+                         <% return; } %>
+                    <option value="<%= data._id %>"><%= data.nome + ' ' + data.sobrenome + ' - ' + data.especialidade.charAt(0).toUpperCase() + data.especialidade.slice(1); %></option>
+               <% }); %>
+          <% } %>
+          </select>
+     </div>
+
+
+     <!-- ALERTAS para exclusão, edição, inserção e outras ações realizadas -->
+     <div id="divAlerts">
+
+     </div>
+
+
+     <div class="container agenda">
+
+
+          <!-- ABAS com lista de pacientes e profissionais -->
+          <div id="menuTabs">
+               <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                         <a class="nav-link" href="/agenda">
+                              <i class="far fa-calendar-check"></i>
+                              Consultas
+                         </a>
+                    </li>
+                    <li class="nav-item">
+                         <a class="nav-link active" href="/disponibilidade">
+                              <i class="far fa-calendar-plus"></i>
+                              Disponibilidade
+                              <span class="sr-only">(aba atual)</span>
+                         </a>
+                    </li>
+               </ul>
+
+
+
+               <h3>Disponibilidade de horários</h3>
+               
+
+
+               <!-- BOTÃO de ADICIONAR DISPONIBILIDADE-->
+               <div class="container box-add-dispon row">
+                    <!-- div invisível -->
+                    <div class="col-sm-2 col-lg-3"></div>
+                    <!-- BOTÃO -->
+                    <div class="col-12 col-sm-8 col-lg-6">
+                         <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#modalAddDispon" id="btnAddDispon">
+                                   <i class="far fa-plus-square"></i>
+                                   Adicionar Disponibilidade
+                         </button>
+                    </div>
+                    <!-- div invisível -->
+                    <div class="col-sm-2 col-lg-3"></div>
+               </div>
+
+
+
+
+               <!-- MODAL para adicionar disponibilidade -->
+               <div class="modal fade" id="modalAddDispon" tabindex="-1" role="dialog" aria-labelledby="addDisponLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                         <div class="modal-content">
+
+                              <div class="modal-header">
+                                   <h5 class="modal-title" id="addDisponLabel">Adicionar Disponibilidade</h5>
+                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                   </button>
+                              </div>
+                         
+                              <div class="modal-body">
+
+                                   <!-- FORMULÁRIO para ADICIONAR disponibilidade -->
+                                   <form role="form" action="" method="POST" id="formAddDispon">
+                                        
+                                        <!-- Campo ID (escondido) -->
+                                        <input type="text" class="form-control" name="id" id="idMed" hidden>
+
+                                        <!-- Campos Nome do Médico e Especialidade -->
+                                        <div class="form-row">
+                                             <div class="form-group col-sm-7">
+                                                  <label for="inputEmail">Médico:</label>
+                                                  <input type="text" name="nomeMed" id="inputNomeMed" class="form-control" readonly required>
+                                             </div>
+                                             <div class="form-group col-sm-5">
+                                                  <label for="inputNascimento">Especialidade:</label>
+                                                  <input type="text" name="especialidade" id="inputEspec" class="form-control" readonly required>
+                                             </div>
+                                        </div>
+                                        
+                                        <!-- Campos Data e Horários de Disponibilidade -->
+                                        <div class="form-row">
+                                             <div class="form-group col-sm-6">
+                                                       <label for="inputData">Data:</label>
+                                                       <input type="date" name="dataDispon" id="inputData" class="form-control" required>
+                                             </div>
+                                             <div class="form-group col-sm-3">
+                                                  <label for="hrIni">De:</label>
+                                                  <select class="form-control" id="hrIni">
+                                                       <option disabled>Início</option>
+                                                       <option val="8">8:00</option>
+                                                       <option val="9">9:00</option>
+                                                       <option val="10">10:00</option>
+                                                       <option val="11">11:00</option>
+                                                       <option val="13">13:00</option>
+                                                       <option val="14">14:00</option>
+                                                       <option val="15">15:00</option>
+                                                       <option val="16">16:00</option>
+                                                       <option val="17">17:00</option>
+                                                  </select>
+                                             </div>
+                                             <div class="form-group col-sm-3">
+                                                  <label for="hrFim">Até:</label>
+                                                  <select class="form-control" id="hrFim">
+                                                       <option disabled>Término</option>
+                                                       <option val="9">09:00</option>
+                                                       <option val="10">10:00</option>
+                                                       <option val="11">11:00</option>
+                                                       <option val="12">12:00</option>
+                                                       <option val="14">14:00</option>
+                                                       <option val="15">15:00</option>
+                                                       <option val="16">16:00</option>
+                                                       <option val="17">17:00</option>
+                                                       <option val="18">18:00</option>
+                                                  </select>
+                                             </div>
+                                             <small id="horaIncorreta" class="form-text text-muted" hidden>O Horário de Término necessita ser posterior ao Horário de Início.</small>
+                                             <small id="selecioneData" class="form-text text-muted" hidden>Obrigatório selecionar uma data.</small>
+                                        </div>
+                                   </form>
+                              </div><!--/.modal-body-->
+
+                              <div class="modal-footer">
+                                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                   <button type="button" class="btn btn-success" id="btnSalvar" onclick="addDisponibilidade()">Salvar</button>
+                              </div>
+
+                         </div><!--/.modal-content-->
+                    </div><!--/.moda-dialog-->
+               </div><!--/.modal-->
+
+
+
+               <!-- MODAL para confirmar EXCLUSÃO DE DISPONIBILIDADE -->
+               <div class="modal fade" id="modalRemoverDispon" tabindex="-1" role="dialog" aria-labelledby="labelRemoverDispon" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                         <div class="modal-content">
+                              <div class="modal-header">
+                                   <h5 class="modal-title" id="labelRemoverDispon">Remover Disponibilidade</h5>
+                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                   </button>
+                              </div>
+                              <div class="modal-body">
+                                   <span id="modalIdMedicoHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <span id="modalDataHoraHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <strong>Data:</strong> <span id="dataParaRemover"></span><br />
+                                   <strong>Horário:</strong> <span id="horaParaRemover"></span><br /><br />
+                                   Deseja realmente remover a disponibilidade?
+                              </div>
+                              <div class="modal-footer">
+                                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                   <button type="button" class="btn btn-danger" id="btnRemoverDispon">Remover</button>
+                              </div>
+                         </div>
+                    </div>
+               </div><!--/.modal-->
+
+
+
+               <!-- MODAL para MARCAÇÃO DE CONSULTA -->
+               <div class="modal fade" id="modalMarcarConsulta" tabindex="-1" role="dialog" aria-labelledby="labelMarcarConsulta" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                         <div class="modal-content">
+                              <div class="modal-header">
+                                   <h5 class="modal-title" id="labelMarcarConsulta">Marcar Consulta</h5>
+                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                   </button>
+                              </div>
+                              <div class="modal-body">
+                                   <span id="modalMarcarIdMedHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <span id="modalMarcarDataHoraHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <strong>Médico:</strong> <span id="medicoMarcar"></span><br />
+                                   <strong>Especialidade:</strong> <span id="especMarcar"></span><br />
+                                   <strong>Data:</strong> <span id="dataParaMarcar"></span><br />
+                                   <strong>Horário:</strong> <span id="horaParaMarcar"></span><br /><br />
+                                   Escolha o paciente:
+                                   <select class="form-control" id="pacienteMarcar">
+                                        <option value="">Pacientes...</option>
+                                   </select>
+                              </div>
+                              <div class="modal-footer">
+                                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                   <button type="button" class="btn btn-success" id="btnMarcarConsulta" onclick="btnMarcarConsulta()">Marcar</button>
+                              </div>
+                         </div>
+                    </div>
+               </div><!--/.modal-->
+
+
+
+
+               <div id="nadaParaMostrar"><p>Selecione um médico para visualizar...</p></div>
+               <div id="medSemDispon"><p>Médico sem datas e horários disponíveis...</p></div>
+
+               <div class="accordion" id="accDatas">
+
+                    <!-- Aqui dentro vão os cards gerados pelo JavaScript de acordo com a agenda do médico selecionado -->
+
+               </div><!--/accordion-->
+          </div><!--/menuTabs-->
+     </div><!--/container agenda -->
+</div><!--/containerBody-->
+
+
+
+
+<!-- Rodapé da página -->
+<footer>
+	<p class="text-center">Copyright <i class="far fa-copyright"></i> 2019</p>
+	<p class="text-center">Jair Junior</p>
+</footer>
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+//-------------------------------------------------------------------------------------------------
+// BOTÃO P/ CONFIRMAR MARCAR CONSULTA COM PACIENTE - DENTRO DO MODAL MARCAR CONSULTA
+// Despois envia requisção ao servidor para proceder com a operação no Banco de Dados
+     function btnMarcarConsulta(){
+          if($("#pacienteMarcar").val() == null){
+               $("#pacienteMarcar").focus();
+               return;
+          }
+          let dataHoraParaMarcar = $("#modalMarcarDataHoraHidden").text();
+          var idMedicoParaMarcar = $("#modalMarcarIdMedHidden").text();
+          var idPacienteParaMarcar = $("#pacienteMarcar").val();
+          $("#modalMarcarConsulta").modal("hide");
+          var obj = {
+               'idMedico': idMedicoParaMarcar,
+               'idPaciente': idPacienteParaMarcar,
+               'dataHora': dataHoraParaMarcar
+          };
+
+          function marcarConsulta( obj ){
+               return new Promise(function(resolve, reject){
+                    var objConsulta = {
+                         'idPaciente': obj.idPaciente,
+                         'dataHora': obj.dataHora
+                    }
+                    $.ajax({
+                         url: "/consulta/marcar/" + obj.idMedico,
+                         type: "PUT",
+                         data: objConsulta,
+                         success: function(data, textStatus, jqXHR){
+                              console.log("Retorno servidor: ", textStatus, data);
+                              resolve(obj);
+                         },
+                         error: function(jqXHR, textStatus, errorThrown){
+                              console.log("Erro ao marcar consulta!");
+                         }
+                    });
+               });
+          }
+
+          function removerDisponibilidade( obj ){
+               return new Promise(function(resolve, reject){
+                    var objRemoverDispon = { dataHora: obj.dataHora };
+                    $.ajax({
+                         url: "/disponibilidade/remover/" + obj.idMedico,
+                         type: "PUT",
+                         data: objRemoverDispon,
+                         success: function(data, textStatus, jqXHR){
+                              console.log("Retorno servidor: ", textStatus, data);
+                              var href = window.location.href;
+                              console.log("href: ", href);
+                              if(href.indexOf("?") > -1){
+                                   var newURL = href.split("?")[0] + "?marcarConsulta=success";
+                                   window.location.href = newURL;
+                              }
+                              else window.location.href += "?marcarConsulta=success";
+                         },
+                         error: function(jqXHR, textStatus, errorThrown){
+                              console.log("Erro ao remover disponibilidade!");
+                         }
+                    });
+               });
+          }
+          // Marca a consulta e depois remove a respectiva data/horário da disponibilidade
+          marcarConsulta(obj).then(removerDisponibilidade);
+     }
+
+
+
+//-------------------------------------------------------------------------------------------------
+// BOTÃO SALVAR que adiciona disponibilidade do médico escolhido
+     function addDisponibilidade(){
+          var id = $("#idMed").val();
+          var data = $("#inputData").val();
+          var hrIni = $("#hrIni").val();
+          var hrFim = $("#hrFim").val();
+          var disponibilidade = new Array();
+
+          // Verifica se campo de data do form foi preenchido
+          if(data == ""){
+               $("#selecioneData").prop('hidden', false);
+               $("#inputData").focus();
+               return;
+          }
+          else{
+               $("#selecioneData").prop('hidden', true);
+          }
+          // Verifica se o horário de término é maior que o horário de início
+          // Caso seja, monta um Array contemplando todo range de data e horários
+          // Formato da data/horário => YYYY-MM-DDTHH:MM:SS-03:00
+          if(parseInt(hrIni) < parseInt(hrFim)){
+               for(var i = parseInt(hrIni); i < parseInt(hrFim); i++){
+                    if(i==12) continue;
+                    let dataHora = data + "T";
+                    if( i < 10 )
+                         dataHora += "0" + i;
+                    else
+                         dataHora += i;
+                    dataHora += ":00:00-03:00";        //somente horas completas, sem minutos ou segundos
+
+                    disponibilidade.push(dataHora);
+               }
+          }
+          else{
+               $("#horaIncorreta").prop('hidden', false);
+               $("#hrFim").focus();
+          }
+          console.log("Array de disponibilidades p/ inserir no DB: ", disponibilidade);
+
+          // Cria um objeto para enviar via AJAX (só aceita objetos e não arrays)
+          // O objeto, por sua vez, contém um único Array com todos os horários de disponibilidade
+          // para serem adicionados no DB.
+          var obj = { dispon: [] };
+          for(var i = 0; i < disponibilidade.length; i++){
+               obj.dispon.push(disponibilidade[i]);
+          }
+
+          // Requisição AJAX tipo POST (adicionar disponibilidade)
+          $.ajax({
+               type: "PUT",
+               url: "/disponibilidade/adicionar/" + id,
+               data: obj,
+               success: function(data, textStatus, jqXHR){
+                    $("#modalAddDispon").modal("hide");
+                    console.log("Status da requisição AJAX POST: ",textStatus);
+                    console.log("Mensagem de resposta do servidor: ", data);
+                    var href = window.location.href;
+                    console.log("href: ", href);
+                    if(href.indexOf("?") > -1){
+                         var newURL = href.split("?")[0] + "?addDisponibilidade=success";
+                         window.location.href = newURL;
+                    }
+                    else window.location.href += "?addDisponibilidade=success";
+               },
+               error: function(jqXHR, textStatus, errorThrown){
+                    console.log("Status da requisição AJAX POST: ",textStatus);
+                    console.log("ERRO do servidor!");
+               }
+          });
+
+     }
+
+
+
+
+
+     $(document).ready(function(){
+  
+          // Mostra alerta no topo da página quando uma consulta é marcada ou quando se remove uma disponibilidade
+          let search = window.location.search;
+          if( (search.length > 0) && (search.charAt(0) == '?') ){
+               search = search.slice(1, search.length);               // Retira o ? do início
+               var params = search.split("&");                        // Separa os parâmetros
+
+               params.forEach( (value) => {
+                    console.log(value);
+                    let keyValue = value.split("=");
+                    if(keyValue[0] == "marcarConsulta"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Consulta <strong>marcada</strong> com sucesso!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+                    else if(keyValue[0] == "removerDisponibilidade"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-danger alert-dismissible fade show' role='alert'>Disponibilidade <strong>removida</strong> da agenda do médico!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+                    else if(keyValue[0] == "addDisponibilidade"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Disponibilidade <strong>adicionada</strong> com sucesso!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+               });
+          }
+
+          $("#nadaParaMostrar").show();      // Mostra texto "Nada para mostrar. Selecione..."
+          $("#medSemDispon").hide();         // Esconde texto "Médico sem disponibilidade..."
+          $(".box-add-dispon").hide();       // Esconde botão Adicionar Disponibilidade - Só mostra qndo seleciona um médico
+          $("#selectMedicos option[value='']").prop('disabled', true);     // Desabilita a primeira opção do Select de médicos
+
+
+
+          //-------------------------------------------------------------------------------------------------
+          // QUANDO CLICAR NO BOTÃO DE REMOVER UMA DISPONIBILIDADE DO MÉDICO - BOTÃO DENTRO DO ACCORDION
+          // Vai abrir um modal de confirmação com a data e a hora escolhida p/ remoção
+          $(document).on("click", "button[id^='btnRemover-']", function(){
+               // Pega id do médico
+               if( $("#selectMedicos").val().split(' ').length > 1)
+                    var idMedico = $("#selectMedicos").val().split(' ')[1];
+               else var idMedico = $("#selectMedicos").val();
+               let dataHora = $(this).val();                     // Valor de data e hora está embutido no respectivo botão
+               let d = dataHora.slice(0,10).split("-");          // Pega a data e a hora ("YYY-MM-DDTHH:MM:SS-Z") e separa em 3 itens
+               let data = d[2]+" / "+d[1]+" / "+d[0];            // Reescreve data no formato DD / MM / YYYY
+               let hora = dataHora.slice(11,16);                 // Pega somente a hora no formato HH:MM
+               $("#modalRemoverDispon").modal("show");           // Abre MODAL de confirmação
+               $("#modalIdMedicoHidden").text(idMedico);         // Escreve no campo escondido o id do médico em questão
+               $("#modalDataHoraHidden").text(dataHora);         // Escreve no campo escondido a data e a hora desejada p/ deletar
+               $("#dataParaRemover").text(data);                 // Informa ao usuário a data selecionada
+               $("#horaParaRemover").text(hora);                 // Informa ao usuário a hora desejada para deletar
+          });
+
+
+
+          //-------------------------------------------------------------------------------------------------
+          // BOTÃO P/ CONFIRMAR A EXCLUSÃO DE UMA DISPONIBIDADE - DENTRO DO MODAL DE REMOVER
+          // Despois envia requisção ao servidor para proceder com a operação no Banco de Dados
+          $("#btnRemoverDispon").click(function(){
+               let dataHoraParaRemover = $("#modalDataHoraHidden").text();
+               var idMedicoParaRemover = $("#modalIdMedicoHidden").text();
+               $("#modalRemoverDispon").modal("hide");
+
+               var obj = { dataHora: dataHoraParaRemover }
+               $.ajax({
+                    url: "/disponibilidade/remover/" + idMedicoParaRemover,
+                    type: "PUT",
+                    data: obj,
+                    success: function(data, textStatus, jqXHR){
+                         console.log("Retorno servidor: ", textStatus, data);
+                         //location.reload();
+                         var href = window.location.href;
+                         console.log("href: ", href);
+                         if(href.indexOf("?") > -1){
+                              var newURL = href.split("?")[0] + "?removerDisponibilidade=success";
+                              window.location.href = newURL;
+                         }
+                         else window.location.href += "?removerDisponibilidade=success";
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                         console.log("Erro ao remover disponibilidade!");
+                    }
+               });
+          });
+
+
+
+          //-------------------------------------------------------------------------------------------------
+          // QUANDO CLICAR NO BOTÃO DE MARCAR UMA CONSULTA - BOTÃO DENTRO DO ACCORDION 
+          // Vai abrir um modal de confirmação para escolher o paciente e confirmação da data/horário desejado
+          $(document).on("click", "button[id^='btnMarcar-']", function(){
+               // Pega id do médico
+               if( $("#selectMedicos").val().split(' ').length > 1)
+                    var idMedico = $("#selectMedicos").val().split(' ')[1];
+               else var idMedico = $("#selectMedicos").val();
+               let dataHora = $(this).val();                     // Valor de data e hora está embutido no respectivo botão
+               let d = dataHora.slice(0,10).split("-");          // Pega a data/ht ("YYYY-MM-DDTHH:MM:SS-Z") e tranforma p/ [YYYY, MM, DD]
+               let data = d[2]+" / "+d[1]+" / "+d[0];            // Reescreve data no formato DD / MM / YYYY
+               let hora = dataHora.slice(11,16);                 // Pega somente a hora no formato HH:MM
+               
+               
+               function buscarMedico( idMedico ){
+                    return new Promise(function(resolve, reject){
+                         let url = "/usuario/get/" + idMedico;   // Monta URL
+                         $.get(url, function(data){              // Faz requisição GET para pegar dados do médico
+                              resolve(data);                     // Repassa todos os dados do médico escolhido
+                         });
+                    });
+               }
+               
+               function buscarPacientes( medico ){
+                    return new Promise(function(resolve, reject){
+                         // Requisição GET para pegar dados minimizados de todos os pacientes cadastrados
+                         let url = "/usuarios/pacientes/min/get";
+                         $.get(url, function(data){
+                              let nomeMedico = medico.nome.charAt(0).toUpperCase() + medico.nome.slice(1) + " " + medico.sobrenome.charAt(0).toUpperCase() + medico.sobrenome.slice(1);
+                              let especialidade = medico.especialidade.charAt(0).toUpperCase() + medico.especialidade.slice(1);
+                              $("#medicoMarcar").text(nomeMedico);
+                              $("#especMarcar").text(especialidade);
+
+                              console.log("Resposta do servidor com pacientes minimizados", data);
+
+                              data.forEach( (value, key) => {
+                                   let nomeCompleto = value.nome.charAt(0).toUpperCase() + value.nome.slice(1) + " " + value.sobrenome.charAt(0).toUpperCase() + value.sobrenome.slice(1);
+                                   let nascimento = value.nascimento.split("-");
+                                   let nomePaciente = nomeCompleto + " - " + nascimento[2]+"/"+nascimento[1]+"/"+nascimento[0];
+                                   $("#pacienteMarcar").append("<option value='"+value.id+"'>"+nomePaciente+"</option>");
+                              });
+                              $("#pacienteMarcar option[value='']").prop('disabled', true);
+                              resolve();
+                         });
+                    });
+               }
+               $("#modalMarcarConsulta").modal("show");          // Abre MODAL de confirmação
+               $("#modalMarcarIdMedHidden").text(idMedico);      // Escreve no campo escondido o id do médico em questão
+               $("#modalMarcarDataHoraHidden").text(dataHora);   // Escreve no campo escondido a data e a hora desejada
+               $("#dataParaMarcar").text(data);                  // Informa ao usuário a data selecionada
+               $("#horaParaMarcar").text(hora);                  // Informa ao usuário a hora desejada para marcar
+
+               buscarMedico(idMedico).then(buscarPacientes);
+          });
+          
+
+
+          //-------------------------------------------------------------------------------------------------
+          // BOTÃO DE ADICIONAR DISPONIBILIDADE - ABRE UM MODAL ONDE OS DADOS DO MÉDICO SERÃO PREENCHIDOS
+          // O USUÁRIO ESCOLHE A DATA E OS HORÁRIOS PARA ADD A DISPONIBILIDADE
+          $("#btnAddDispon").click( function(){
+               // Pega id do médico
+               if( $("#selectMedicos").val().split(' ').length > 1)
+                    var idMedico = $("#selectMedicos").val().split(' ')[1];
+               else var idMedico = $("#selectMedicos").val();
+
+               $("#horaIncorreta").prop('hidden', true);    // Esconde msg de erro
+               $("#selecioneData").prop('hidden', true);    // Esconde msg de erro
+
+
+               if(idMedico != ""){
+                    // Monta URL para fazer requisição ao servidor
+                    // Requisição GET para pegar dados do médico
+                    let url = "/usuario/get/" + idMedico;
+                    $.get(url, function(data){
+                         let nome = data.nome.charAt(0).toUpperCase() + data.nome.slice(1) + " " + data.sobrenome.charAt(0).toUpperCase() + data.sobrenome.slice(1);
+                         let especialidade = data.especialidade.charAt(0).toUpperCase() + data.especialidade.slice(1);
+
+                         // Preenche dados no formulário (id, nome e especialidade do médico)
+                         $("#idMed").val(idMedico);              // Campo hidden do formulário
+                         $("#inputNomeMed").val(nome);
+                         $("#inputEspec").val(especialidade);
+                    });
+               }
+          });//$(#btnAddDispon).click()
+
+
+
+          //-------------------------------------------------------------------------------------------------
+          // ATUALIZA OS ACCORDIONS DA VIEW DE ACORDO COM A AGENDA DO MÉDICO SELECIONADO
+          function showDisponibilidade(idMedico){
+               $("#accDatas").empty();                      // Limpa o interior da div do Accordion
+
+               if(idMedico != ""){
+                    $("#nadaParaMostrar").hide();
+                    $("#medSemDispon").hide();
+                    $(".box-add-dispon").show();
+
+                    // Faz requisição GET ao servidor
+                    // A reposta estará armazenada na variável data (todas infos do médico)
+                    let url = "/usuario/get/" + idMedico;     // Monta URL para fazer requisição ao servidor
+                    $.get(url, function(data){
+                         console.log("Request GET - Dados do médico selecionado: ", data);
+                         
+                         // Médico não possui disponibilidade. Pode acontecer nos casos de um Médico recém-cadastrado
+                         if(!data.disponibilidade){    
+                              $("#medSemDispon").show();
+                              return;
+                         }
+
+                         var dispon = data.disponibilidade;      // Pega somente a disponibilidade do médico
+                         var disponOrdenada = new Array();       // Armazenas todas datas/horários disponíveis em ordem crescente
+                         var datasDeDispon = new Array();        // Armazena somente as datas de disponibilidade ordenadas sem repeti-las
+                         var dataHora = new Array();             // Array tipo ["data", "hora"] da disponibilidade
+                         var hoje = new moment().format().split('T')[0]; // Data do dia de hoje para comparação
+
+                         // Bloco de operações para retirar datas de disponibilidade anteriores a data atual
+                         // Elas continuam no banco de dados, porém não serão mostradas na página p/ o usuário
+                         var indexToRemove = new Array();
+                         dispon.forEach( (value, key) =>{
+                              if(moment(value).diff(hoje) < 0)
+                                   indexToRemove.push(key);
+                         });
+                         indexToRemove.forEach( (index, key) => {
+                              dispon.splice(index-key, 1);
+                         });
+
+                         // Coloca as datas/horários em ordem cronológica crescente
+                         var disponOrdenada = dispon.sort( (a,b) => {
+                              x = new moment(a);
+                              y = new moment(b);
+                              return x.diff(y);
+                         });
+                         console.log("Disponibilidade [YYYY-MM-DDTHH:MM:SS-Z] em ordem cronológica crescente: ", disponOrdenada);
+
+                         // Armazena no Array datasDeDispon somente as datas onde há disponibilidade (sem repeti-las)
+                         disponOrdenada.forEach( (value, key) => {
+                              dataHora.push( value.split("T") );                     // Separa a data e a hora na string
+                              if( datasDeDispon.indexOf(dataHora[key][0]) < 0 )
+                                   datasDeDispon.push(dataHora[key][0]);
+                         });
+                         console.log("Array dataHora do tipo ['data', 'hora']: ", dataHora);
+                         console.log("Somente datas onde há disponibilidade marcada (sem repetir): ", datasDeDispon);
+                         
+                         // Cria dinamicamente os cards do Accordion. Um card para cada data em que há disponibilidade
+                         datasDeDispon.forEach( (value, key) => {
+                              let data = value.split("-");
+                              $("#accDatas").append("<div class='card'><div class='card-header' id='heading"+key+"'><h2 class='mb-0'><button class='btn btn-link' type='button' data-toggle='collapse' data-target='#collapse"+key+"' aria-expanded='true' aria-controls='collapse"+key+"'>"+data[2]+" / "+data[1]+" / "+data[0]+"</button></h2></div><div id='collapse"+key+"' class='collapse' aria-labelledby='heading"+key+"' data-parent='#accDatas'><div class='card-body'><table class='table tabela-dispon'><thead><tr><th scope='col'class='th-horario'>Horário</th><th scope='col' class='th-acao'>Ação</th></tr></thead><tbody> </tbody></table></div></div></div>");
+                         });
+
+                         // Insere horários de disponibilidades no Collapse do Accordion
+                         // Na frente são adicionados botões de Marcar Consulta e Remover a Disponibilidade
+                         // Cada botão possui valor correspondente da sua data/hora para ser utilizado na ação do click
+                         for(var j = 0; j < datasDeDispon.length; j++) {
+                              for(var i = 0; i < dataHora.length; i++){
+                                   if( dataHora[i][0] == datasDeDispon[j] ){
+                                        let hora = dataHora[i][1].slice(0,5);
+                                        let valDataHora = datasDeDispon[j]+"T"+dataHora[i][1];
+                                        let idBtnRemover = "btnRemover-"+j+"-"+i;
+                                        let idBtnMarcar = "btnMarcar-"+j+"-"+i;
+
+                                        $("#collapse"+j+" tbody").append("<tr class='hover-row'><td>"+hora+"</td><td><div class='wrapper-btns'><div class='btn-marcar'><button type='button' class='btn btn-info btn-sm btn-dispon-acao' value='"+valDataHora+"' id='"+idBtnMarcar+"'>Marcar Consulta</button></div> <div class='btn-remover'><button type='button' class='btn btn-danger btn-sm btn-dispon-acao' value='"+valDataHora+"' id='"+idBtnRemover+"'>Remover</button></div> </div></td></tr>"); // insere na tabela dentro do Accordion
+                                   }
+                              }//for
+                         }//for
+                    
+                    });//.GET request to server
+               }//if
+               else{
+                    $("#nadaParaMostrar").show();
+                    $("#medSemDispon").hide();
+               }
+          }//showDisponibilidade()
+
+
+          // O evento change só vai acontecer no caso de um recepcionista estar logado
+          // O <select> estará desbloqueado para ele ver todos os médicos cadastrados
+          $("#selectMedicos").on('change', function(){
+               var idMedico = $("#selectMedicos").val();    // Pega id do médico selecionado
+               showDisponibilidade(idMedico);
+          });
+
+          // Caso um médico esteja logado no sistema, o <select> estará bloqueado com o nome dele fixo
+          if( $("#selectMedicos").val() != null && $("#selectMedicos").val().split(' ')[0] == 'perfilMedicoFixo:' ){
+               console.log('Perfil de médico...');
+               var idMedico = $("#selectMedicos").val().split(' ')[1];
+               console.log(idMedico);
+               showDisponibilidade(idMedico);
+          }
+     });//(document).ready()
+</script>
+
+
+<!-- Popper.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<!-- Bootstrap JavaScript plugin -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+.box-select-med{
+     margin-bottom: 50px;
+}
+select {
+     max-width: 70%;
+     display: block;
+     margin: 0 auto;
+}
+.container h3{
+     margin: 20px 0px;
+}
+button.btn.btn-link{
+     color: black;
+     font-weight: bold;
+}
+.hover-row:hover{
+     background-color: rgba(94, 94, 94, 0.068);
+}
+
+.btn-desmarcar{
+     display: block;
+     margin: 0 auto;
+}
+
+.tabela-dispon .th-horario{
+     width: 60%;
+}
+
+.box-add-dispon{
+     margin-bottom: 30px;
+}
+
+#horaIncorreta, #selecioneData{
+     color: red!important;
+}
+
+ select.form-control{
+      max-width: 100%;
+ }
+
+ .btn-dispon-acao{   
+      margin: 0px 10px;
+      min-width: 125px;
+ }
+ .th-acao{
+      text-align: center;
+ }
+ .wrapper-btns{
+      display: block;
+      text-align: center;
+ }
+ .btn-remover, .btn-marcar{
+      display: inline-block;
+      margin: 0 auto;
+ }

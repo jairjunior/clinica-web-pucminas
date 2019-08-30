@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="description" content="Sistema de Gestão de Clínica Médica">
+     <meta name="author" content="Jair Dias de Oliveira Junior">
+     <meta name="keywords" content="PUC Minas,Pós-Graduação,Desenvolvimento de Aplicações Web, Aplicação Web, Sistema de Gestão">
+
+     <title>Agenda | Sistema de Gestão de Clínica Médica</title>
+
+     <!-- Bootstrap 4.3.1 CSS -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+     <!-- Font Awesome 5.8.1 -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+     <!-- Moment.js library -->
+     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+
+     <!-- Meus estilos -->
+     <link rel="stylesheet" type="text/css" href="/styles/usuarios.css">
+     <link rel="stylesheet" type="text/css" href="/styles/agenda.css">
+
+     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+     <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+     <![endif]-->
+
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+     <!-- jQuery fancyTable package v1.0.15 -->
+     <script src="https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js"></script>
+
+</head>
+<body>
+
+<!-- BARRA DE NAVEGAÇÃO superior -->
+<nav class="navbar navbar-expand-lg navbar-light">
+     <div class="container">
+          <span class="navbar-brand mb-0 h1 text-white">
+               <i class="fas fa-clinic-medical"></i> Clínica-Web
+          </span>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar Navegação">
+               <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+               <ul class="navbar-nav">
+
+                    <li class="nav-item active">
+                         <a class="nav-link text-white" href="/agenda">AGENDA <span class="sr-only">(menu atual)</span></a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/exames">EXAMES</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/medicamentos">MEDICAMENTOS</a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/pacientes/consultas">PACIENTES</a>
+                         </li>
+                    <% } %>
+                    
+                    <% if(sessionData.perfil =='recepcionista'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/usuarios/pacientes">USUÁRIOS</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item dropdown navbar-link">
+                         <a class="nav-link dropdown-toggle navbar-logout" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <strong>LOGOUT</strong>
+                         </a>
+                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              <a class="dropdown-item" href="/logout">
+                                   <%= sessionData.nome +' ('+ sessionData.perfil.charAt(0).toUpperCase() + sessionData.perfil.slice(1) +') '; %>
+                                   <i class="fas fa-sign-out-alt"></i>
+                              </a>
+                         </div>
+                    </li>
+
+               </ul>
+          </div>
+     </div>
+</nav>
+
+
+<!-- CORPO PRINCIPAL DA PÁGINA -->
+<div class="container" id="containerBody">
+
+     <!-- TÍTULO da página e breve explicação -->
+     <div class="heading">
+          <h2 class="text-center">
+               <i class="far fa-calendar-alt"></i>
+               Agenda
+          </h2>
+          <p class="text-center">Selecione um médico cadastrado para visualizar suas consultas/disponibilidade.</p>
+     </div>
+
+     <!-- Caixa com seletor para escolher Médico -->
+     <div class="container box-select-med row">
+          <% if(sessionData.perfil == 'medico') { %>
+               <select name="medicos" class="custom-select" id="selectMedicos" disabled>
+               <option value="<%= 'perfilMedicoFixo: '+ sessionData.id %>"><%= sessionData.nome + ' ' + sessionData.sobrenome + ' - ' + sessionData.especialidade.charAt(0).toUpperCase() + sessionData.especialidade.slice(1); %></option>
+          <% } else { %>
+               <select name="medicos" class="custom-select" id="selectMedicos">
+               <option value="">Selecione um médico...</option>
+               <% medicos.forEach( (data, key) => { %>
+                    <% if(data.perfil != 'medico') { %>
+                         <% return; } %>
+                    <option value="<%= data._id %>"><%= data.nome + ' ' + data.sobrenome + ' - ' + data.especialidade.charAt(0).toUpperCase() + data.especialidade.slice(1); %></option>
+               <% }); %>
+          <% } %>
+          </select>
+     </div>
+
+     <!-- ALERTAS para exclusão, edição, inserção e outras ações realizadas -->
+     <div id="divAlerts">
+
+     </div>
+
+     <div class="container agenda">
+
+          <!-- ABAS com lista de pacientes e profissionais -->
+          <div id="menuTabs">
+               <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                         <a class="nav-link active" href="/agenda">
+                              <i class="far fa-calendar-check"></i>
+                              Consultas
+                              <span class="sr-only">(aba atual)</span>
+                         </a>
+                    </li>
+                    <li class="nav-item">
+                         <a class="nav-link" href="/disponibilidade">
+                              <i class="far fa-calendar-plus"></i>
+                              Disponibilidade
+                         </a>
+                    </li>
+               </ul>
+
+
+               <h3>Datas agendadas</h3>
+               <div id="nadaParaMostrar"><p>Nada para mostrar. Selecione um médico...</p></div>
+               <div id="medSemAgenda"><p>O médico selecionado não possui nenhuma consulta marcada até o momento...</p></div>
+
+               <!-- MODAL para confirmar DESMARCAR CONSULTA -->
+               <div class="modal fade" id="modalDesmarcarConsulta" tabindex="-1" role="dialog" aria-labelledby="labelDesmarcarConsulta" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                         <div class="modal-content">
+                              <div class="modal-header">
+                                   <h5 class="modal-title" id="labelDesmarcarConsulta">Desmarcar Consulta</h5>
+                                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                   </button>
+                              </div>
+                              <div class="modal-body">
+                                   <span id="modalDesmarcarIdMedHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <span id="modalDesmarcarIdPacienteHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <span id="modalDesmarcarDataHoraHidden" hidden><!--Valor preenchido dinamicamente--></span>
+                                   <strong>Médico:</strong> <span id="medicoDesmarcar"></span><br />
+                                   <strong>Especialidade:</strong> <span id="especDesmarcar"></span><br /><br />
+                                   <strong>Paciente:</strong> <span id="pacienteParaDesmarcar"></span><br /><br />
+                                   <strong>Data:</strong> <span id="dataParaDesmarcar"></span><br />
+                                   <strong>Horário:</strong> <span id="horaParaDesmarcar"></span><br /><br />
+                              </div>
+                              <div class="modal-footer">
+                                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                   <button type="button" class="btn btn-danger" id="btnConfirmaDesmarcar" onclick="botaoDesmarcar()">Desmarcar</button>
+                              </div>
+                         </div>
+                    </div>
+               </div><!--/.modal-->
+
+               <div class="accordion" id="accDatas">
+
+                    <!-- Aqui dentro vão os cards gerados pelo JavaScript de acordo com a agenda do médico selecionado -->
+
+               </div><!--/accordion-->
+
+
+          </div><!--/menuTabs-->
+     </div><!--/container agenda -->
+</div><!--/containerBody-->
+
+
+
+
+<!-- Rodapé da página -->
+<footer>
+	<p class="text-center">Copyright <i class="far fa-copyright"></i> 2019</p>
+	<p class="text-center">Jair Junior</p>
+</footer>
+
+
+
+
+<script type="text/javascript">
+
+//-------------------------------------------------------------------------------------------------
+// BOTÃO P/ CONFIRMAR DESMARCAR UMA CONSULTA - DENTRO DO MODAL DE REMOVER
+// Despois envia requisção ao servidor para proceder com a operação no Banco de Dados
+     function botaoDesmarcar(){
+          var idMedico                  = $("#modalDesmarcarIdMedHidden").text();
+          let idPaciente                = $("#modalDesmarcarIdPacienteHidden").text();
+          let dataHoraParaDesmarcar     = $("#modalDesmarcarDataHoraHidden").text();
+          $("#modalDesmarcarConsulta").modal("hide");
+          var url = "/consulta/desmarcar/" + idMedico;
+          var obj = { 
+               'idPaciente': idPaciente,
+               'dataHora': dataHoraParaDesmarcar };
+          $.ajax({
+               url: url,
+               type: "PUT",
+               data: obj,
+               success: function(data, textStatus, jqXHR){
+                    console.log("Retorno do servidor: ", textStatus, data);
+                    
+                    var href = window.location.href;
+                    console.log("href: ", href);
+                    if(href.indexOf("?") > -1){
+                         var newURL = href.split("?")[0] + "?desmarcar=success";
+                         window.location.href = newURL;
+                    }
+                    else{
+                         window.location.href += "?desmarcar=success";
+                    }
+               },
+               error: function(jqXHR, textStatus, errorThrown){
+                    console.log("Erro ao remover disponibilidade!");
+               }
+          });
+     }
+
+
+
+//-------------------------------------------------------------------------------------------------
+// QUANDO O DOCUMENTO HTML ESTIVER PRONTO
+     $(document).ready(function(){
+
+          // Mostra alerta no topo da página quando uma consulta é desmarcada
+          let search = window.location.search;
+          if( (search.length > 0) && (search.charAt(0) == '?') ){
+               search = search.slice(1, search.length);               // Retira o ? do início
+               var params = search.split("&");                        // Separa os parâmetros
+
+               params.forEach( (value) => {
+                    let keyValue = value.split("=");
+                    if(keyValue[0] == "desmarcar"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-danger alert-dismissible fade show' role='alert'>Consulta <strong>desmarcada</strong> com sucesso!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+               });
+          }
+
+          $("#nadaParaMostrar").show();                                    // Mostra texto "Nada para mostrar. Selecione..."
+          $("#medSemAgenda").hide();                                       // Mostra texto "O médico não possui nenhuma consulta agendada..."
+          $("#selectMedicos option[value='']").prop('disabled', true);     // Desabilita a primeira opção do Select
+          
+          //-------------------------------------------------------------------------------------------------
+          // QUANDO CLICAR NO BOTÃO DE DESMARCAR UMA CONSULTA - BOTÃO DENTRO DO ACCORDION
+          // Vai abrir um modal de confirmação com dados do médico, paciente, data e hora
+          $(document).on("click", "button[id^='btnDesmarcar-']", function(){
+               // Pega id do médico
+               if( $("#selectMedicos").val().split(' ').length > 1)
+                    var idMedico = $("#selectMedicos").val().split(' ')[1];
+               else var idMedico = $("#selectMedicos").val();
+               // Pega o id do paciente e removendo quaisquer caracteres especiais
+               let idPaciente = $(this).find("span").text().replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+               let dataHora = $(this).val();                     // Valor de data e hora está embutido no respectivo botão
+               let texto = $("#selectMedicos option:selected").text().split("-"); 
+               let nomeMedico = texto[0];                        // Nome completo do médico (que estava dentro do <select>)
+               let especialidade = texto[1];                     // Especialidade do médicpop
+               let d = dataHora.slice(0,10).split("-");          // Pega a data e a hora ("YYY-MM-DDTHH:MM:SS-Z") e separa em 3 itens
+               let data = d[2]+" / "+d[1]+" / "+d[0];            // Reescreve data no formato DD / MM / YYYY
+               let hora = dataHora.slice(11,16);                 // Pega somente a hora no formato HH:MM
+               
+               $("#modalDesmarcarConsulta").modal("show");            // Abre MODAL de confirmação p/ desmarcar consulta 
+               $("#modalDesmarcarIdMedHidden").text(idMedico);        // Escreve no campo escondido o id do médico em questão
+               $("#modalDesmarcarIdPacienteHidden").text(idPaciente); // Escreve no campo escondido o id do paciente em questão
+               $("#modalDesmarcarDataHoraHidden").text(dataHora);     // Escreve no campo escondido a data e a hora desejada p/ deletar
+               
+               $("#medicoDesmarcar").text(nomeMedico);                // Informa o médico da consulta
+               $("#especDesmarcar").text(especialidade);              // Informa especialidade do médico da consulta
+               $("#dataParaDesmarcar").text(data);                    // Informa ao usuário a data selecionada
+               $("#horaParaDesmarcar").text(hora);                    // Informa ao usuário a hora desejada para deletar
+               
+
+               let url = "/usuario/get/" + idPaciente;                     // Monta URL
+               $.get(url, function(data){                                  // Faz requisição GET para pegar dados do paciente
+                    let nomePaciente = data.nome + " " + data.sobrenome;
+                    $("#pacienteParaDesmarcar").text(nomePaciente);        // Informa o nome do paciente da consulta
+               });
+          });
+
+
+          //-----------------------------------------------------------------------------------------------------------
+          // FUNÇÃO PARA ATUALIZAR OS ACCORDIONS DE ACORDO COM A AGENDA DO MÉDICO ESCOLHIDO
+          //-----------------------------------------------------------------------------------------------------------
+          function showAgenda(idMedico){
+               console.log('Função showAgenda()');
+               $("#accDatas").empty();                      // Limpa o interior da div do Accordion
+               if(idMedico != ""){
+                    $("#nadaParaMostrar").hide();
+                    $("#medSemAgenda").hide();
+
+                    // Monta URL para fazer requisição ao servidor
+                    // Requisição GET -  Reposta: todas infos do médico e de seus pacientes.
+                    let url = "/consultas/" + idMedico;
+                    $.get(url, function(data, textStatus){     
+                         if(data[0].agenda.length == 0){    // Médico não possui disponibilidade.
+                              $("#medSemAgenda").show();    // Pode acontecer nos casos de um Médico recém-cadastrado
+                              return;
+                         }
+                         var agenda = data[0].agenda;       // Pega somente a agenda do médico
+                         var consultas = new Array();       // Armazena [idPaciente, Data, Hora] nesta ordem
+                         var datas = new Array();           // Armazena todas as datas (uso temporário / sem ordenação)
+                         var datasOrdenadas = new Array();  //Armazenas todas datas de consultas em ordem crescente
+                         console.log(data);
+                         console.log("Toda a agenda do médico: ", agenda);
+                         
+                         // Varre a agenda do médico salvando as datas das consultas, mas sem repeti-las.
+                         agenda.forEach( (consulta) => {
+                              let data = consulta.dataHora.slice(0, 10);   // Pega a data da consulta (YYYY-MM-DD)
+                              if( datas.indexOf(data) < 0 )                // Verifica se a data já consta no Array datas
+                                   datas.push(data);                       // Para evitar adicionar datas repetidas (sem ordenação)
+                         });
+                         
+                         // Coloca as datas em ordem crescente (ordenadas e sem repetidas)
+                         var datasOrdenadas = datas.sort( (a,b) => {
+                              let x = new moment(a);
+                              let y = new moment(b);
+                              return x.diff(y);
+                         });
+                         console.log("Datas das consultas em ordem cronológica (sem repetir):", datasOrdenadas);
+
+                         //Ordena todas as consultas em ordem cronológica crescente
+                         agenda.sort( (a,b) => {
+                              let x = new moment(a.dataHora);
+                              let y = new moment(b.dataHora);
+                              return x.diff(y);
+                         });
+                         console.log("Agenda ordenada em ordem cronológica: ", agenda);
+
+                         // Separa data e hora em dois items diferentes do Array
+                         // Array consultas fica do tipo ["idPaciente", "Data", "Hora"]
+                         agenda.forEach( (obj, key) => {
+                              let idPaciente = obj.idPaciente;
+                              let dataHora = obj.dataHora.split("T");
+                              let arr = [idPaciente, dataHora[0], dataHora[1]];
+                              consultas.push(arr);
+                         });
+                         console.log("Array de consultas [idPaciente, Data, Hora] ", consultas);
+
+                         // Cria dinamicamente os cards do Accordion. Um card para cada data em que há consulta(s) marcada(s).
+                         //let agora = moment().format();
+                         datasOrdenadas.forEach( (value, key) => {
+                              // Mostra somente datas de 7 dias atrás para frente
+                              //if(new moment(data).diff( new moment(agora), 'days' ) > 7 ){
+                                   let data = value.split("-");
+                                   $("#accDatas").append("<div class='card'><div class='card-header' id='heading"+key+"'><h2 class='mb-0'><button class='btn btn-link' type='button' data-toggle='collapse' data-target='#collapse"+key+"' aria-expanded='true' aria-controls='collapse"+key+"'>"+data[2]+" / "+data[1]+" / "+data[0]+"</button></h2></div><div id='collapse"+key+"' class='collapse' aria-labelledby='heading"+key+"' data-parent='#accDatas'><div class='card-body'><table class='table'><thead><tr><th scope='col'>Horário</th><th scope='col'>Paciente</th><th scope='col' class='th-acao'>Ação</th></tr></thead><tbody> </tbody></table></div></div></div>");
+                              //}
+                         });
+
+                         // Insere horário das consultas no Collapse do Accordion
+                         for(var j = 0; j < datasOrdenadas.length; j++) {
+                              for(var i = 0; i < consultas.length; i++){
+                                   if( consultas[i][1] == datasOrdenadas[j] ){
+                                        let paciente = data.find(obj => obj._id == consultas[i][0]);     // Acha paciente pelo ID que consta na consulta
+                                        let nomePaciente = paciente.nome + " " + paciente.sobrenome;     // Junta nome + sobrenome do paciente
+                                        let idBtnDesmarcar = "btnDesmarcar-"+j+"-"+i;                    // ID dinâmico do botão "Desmarcar"
+                                        let valDataHora = consultas[i][1]+"T"+consultas[i][2];           // Valor dinâmico do botão "Desmarcar" (data e hora da consulta)
+                                        $("#collapse"+j+" .table tbody").append("<tr class='hover-row'><td>"+consultas[i][2].slice(0,5)+"</td><td>"+nomePaciente+"</td><td><button type='button' class='btn btn-danger btn-sm btn-desmarcar' value='"+valDataHora+"' id='"+idBtnDesmarcar+"'>Desmarcar<span hidden>'"+consultas[i][0]+"'</span></button></td></tr>"); // insere na tabela
+                                   }
+                              }//for
+                         }//for
+                    
+                    });//.GET request to server
+               }//if
+               else{
+                    $("#nadaParaMostrar").show();
+               }
+          }//showAgenda()
+          
+
+          // O evento change só vai acontecer no caso de um recepcionista estar logado
+          // O <select> estará desbloqueado para ele ver todos os médicos cadastrados
+          $("#selectMedicos").on('change', function(){
+               var idMedico = $("#selectMedicos").val();    // Pega id do médico selecionado
+               showAgenda(idMedico);
+          });
+
+          // Caso um médico esteja logado no sistema, o <select> estará bloqueado com o nome dele fixo
+          if( $("#selectMedicos").val() != null && $("#selectMedicos").val().split(' ')[0] == 'perfilMedicoFixo:' ){
+               console.log('Perfil de médico...');
+               var idMedico = $("#selectMedicos").val().split(' ')[1];
+               console.log(idMedico);
+               showAgenda(idMedico);
+          }
+
+
+     });//(document).ready()
+</script>
+
+
+<!-- Popper.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<!-- Bootstrap JavaScript plugin -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>

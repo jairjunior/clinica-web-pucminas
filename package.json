@@ -1,0 +1,32 @@
+{
+  "name": "clinica-web",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Clínica Médica",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "clinica-web-pucminas"
+  },
+  "keywords": [
+    "Aplicação",
+    "App",
+    "Gestão",
+    "Clínica",
+    "Médico",
+    "Agenda",
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Node.js",
+    "Express.js",
+    "MongoDB",
+    "PUC",
+    "Minas"
+  ],
+  "author": "Jair Dias de Oliveira Junior",
+  "license": "ISC"
+}

@@ -1,0 +1,23 @@
+.tabela-dados-paciente{
+     margin-bottom: 60px;
+}
+.heading{
+     margin-bottom: 70px;
+}
+.nav-tabs{
+     margin-bottom: 20px;
+}
+.table-row-grey{
+     background-color: #EEEEEE;
+}
+.box-select-paciente{
+     margin-bottom: 50px;
+}
+select {
+     max-width: 70%;
+     display: block;
+     margin: 0 auto;
+}
+.container h3{
+     margin: 20px 0px;
+}

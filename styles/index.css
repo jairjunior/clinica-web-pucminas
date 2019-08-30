@@ -1,0 +1,80 @@
+body, html {
+    height: 100%;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(rgb(104, 145, 162), rgb(12, 97, 33));
+}
+.fa-clinic-medical{
+     margin-right: 10px;
+}
+#projectName {
+     margin-top: 7px;
+     margin-bottom: 10px;
+ }
+.outer {
+    display: table;
+    height: 80%;
+    width: 100%;
+    padding: 20px 0px;
+}
+.middle {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0px;
+    margin: 0px;
+}
+.box-login {
+	background-color: #FAFAFA;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 430px;
+	padding: 40px 20px;
+	border: 1px solid #FCFCFC;
+	border-radius: 4px;
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+#login-title{
+     margin-bottom: 40px;
+}
+#inputEmail, #inputPassword {
+	height: 3em;
+}
+footer{
+     position: fixed;
+     bottom: 0px;
+     width: 100%;
+     padding: 3px;
+     background-color: #FAFAFA;
+}
+footer > p{
+     margin-bottom: 0px;
+}
+
+
+
+
+
+/* Para telas de até 767px (Small) */
+@media only screen and (max-width: 767px) {
+     #projectName {
+          font-size: 1.40rem;
+          margin-top: 3px;
+          margin-bottom: 3px;
+      }
+     nav > div.container{
+          padding: 0px;
+     }
+}
+/* Para telas de até 575px (Extra Small) */
+@media only screen and (max-width: 575px) {
+     #projectName {
+         font-size: 0.96rem;
+     }
+     .box-login {
+          max-width: 310px;
+          padding: 20px 20px;
+      }
+      #login-title{
+          margin-bottom: 20px;
+     }
+}

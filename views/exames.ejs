@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="description" content="Sistema de Gestão de Clínica Médica">
+     <meta name="author" content="Jair Dias de Oliveira Junior">
+     <meta name="keywords" content="PUC Minas,Pós-Graduação,Desenvolvimento de Aplicações Web, Aplicação Web, Sistema de Gestão">
+
+     <title>Exames | Sistema de Gestão de Clínica Médica</title>
+
+     <!-- Bootstrap 4.3.1 CSS -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+     <!-- Font Awesome 5.8.1 -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+     <!-- Moment.js library -->
+     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+
+     <!-- Meus estilos -->
+     <link rel="stylesheet" type="text/css" href="/styles/usuarios.css">
+
+     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+     <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+     <![endif]-->
+
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+     <!-- jQuery fancyTable package v1.0.15 -->
+     <script src="https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js"></script>
+
+</head>
+<body>
+
+<!-- Injetando as variáveis de seção no código JavaScript-->
+<% if(sessionData){%>
+     <span id="loggedUserID" hidden><%= sessionData.id %></span>
+<% } %>
+
+
+<!-- BARRA DE NAVEGAÇÃO superior -->
+<nav class="navbar navbar-expand-lg navbar-light">
+     <div class="container">
+          <span class="navbar-brand mb-0 h1 text-white">
+               <i class="fas fa-clinic-medical"></i> Clínica-Web
+          </span>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar Navegação">
+               <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+               <ul class="navbar-nav .text-white">
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/agenda">AGENDA</span></a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item active">
+                              <a class="nav-link text-white" href="/exames">EXAMES <span class="sr-only">(menu atual)</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/medicamentos">MEDICAMENTOS</a>
+                    </li>
+                    
+                    <% if(sessionData.perfil =='medico'){ %>
+                         <li class="nav-item navbar-link">
+                              <a class="nav-link text-white" href="/pacientes/consultas">PACIENTES</a>
+                         </li>
+                    <% } %>
+                    
+                    <li class="nav-item dropdown navbar-link">
+                         <a class="nav-link dropdown-toggle navbar-logout" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <strong>LOGOUT</strong>
+                         </a>
+                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              <a class="dropdown-item" href="/logout">
+                                   <%= sessionData.nome +' ('+ sessionData.perfil.charAt(0).toUpperCase() + sessionData.perfil.slice(1) +') '; %>
+                                   <i class="fas fa-sign-out-alt"></i>
+                              </a>
+                         </div>
+                    </li>
+               </ul>
+          </div>
+     </div>
+</nav>
+
+
+<!-- CORPO PRINCIPAL DA PÁGINA -->
+<div class="container" id="containerBody">
+     
+
+     <!-- TÍTULO da página e breve explicação -->
+     <div class="heading">
+          <h2 class="text-center">
+               <i class="fas fa-file-medical-alt"></i>
+               Exames
+          </h2>
+          <p class="text-center">
+               Exames disponíveis para pedidos.
+               <br/ >
+               Faça a solicitação de um exame para o seu paciente.
+          </p>
+     </div>
+
+
+     <!-- CAMPO DE BUSCA e BOTÃO para ações (cadastrar, receitar, excluir) -->
+     <div class="container box-add-btn row">
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+          <!-- BOTÃO -->
+          <div class="btn-group col-12 col-sm-6 col-lg-4">
+               <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#modalSolicitarExames">
+                    <i class="fas fa-notes-medical"></i>
+                    Solicitar Exame
+               </button>
+          </div>
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+     </div>
+
+
+
+
+     <!-- ALERTAS para exclusão, edição e inserção de medicamentos -->
+     <div id="divAlerts">
+
+     </div>
+
+
+
+
+     <!-- MODAL para SOLICITAR EXAMES aos pacientes -->
+     <div class="modal fade" id="modalSolicitarExames" tabindex="-1" role="dialog" aria-labelledby="modalSolicitarExamesLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalSolicitarExamesLabel">Solicitar Exames</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <form role="form" action="" method="PUT" id="formSolicitarExames">
+                              
+                              <div class="form-group">
+                                   <label for="pacienteSolicitar">Escolha o paciente:</label>
+                                   <select class="form-control" id="pacienteSolicitar"></select>
+                              </div>
+                              <small id="selecionePaciente" class="form-text text-muted" hidden>Obrigatório selecionar um paciente.</small>
+
+                              <div class="form-group">
+                                   <label for="labSolicitar">Escolha o Laboratório:</label>
+                                   <select class="form-control" id="labSolicitar"></select>
+                              </div>
+                              <small id="selecionePaciente" class="form-text text-muted" hidden>Obrigatório selecionar um laboratório.</small>
+
+                              <div class="exames-solicitados">
+                                   <p>Exames:</p>
+                                   <ul class="list-group" id="listaExamesSolicitados"></ul>
+                              </div>
+                         </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                         <button type="button" class="btn btn-success" id="btnSolicitarExames" onclick="botaoSolicitarExames()">Solicitar</button>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+
+
+     
+
+
+
+     <!-- TABELA com lista de medicamentos -->
+     <div id="tabelaExames">
+          
+          <% if( !exames || exames.length == 0 ){ %>
+               <p>Não existem exames cadastrados no sistema... Contate o administrador.</p>
+          <% }else{ %>
+               <table class="table tabela-exames">
+                    <thead>
+                         <tr>
+                              <th scope="col"><i class="far fa-check-square"></i></th>
+                              <th scope="col">Nome do Exame</th>
+                         </tr>
+                    </thead>
+                    <tbody>
+                         <!-- Varre a agenda do paciente -->
+                         <% exames.forEach( (exame, key) => { %>
+                              <!-- Constrói tabela com os dados dos medicamentos -->
+                              <tr class="clickable-row" id="row_<%= key %>">
+                                   <td class="td-id" hidden><%= exame._id %></td>
+                                   <td class="td-checkbox"><input type='checkbox' name="nomeExame" value='<%= exame.nome %>'></td>
+                                   <td class="clickable-cell"><%= exame.nome; %></td>
+                              </tr>
+                         <% }); %>
+                    </tbody>
+               </table>
+          <% } %>
+          
+     </div><!--/tabelaMedicamentos-->
+</div><!--/containerBody-->
+
+
+
+<!-- Rodapé da página -->
+<footer>
+	<p class="text-center">Copyright <i class="far fa-copyright"></i> 2019</p>
+	<p class="text-center">Jair Junior</p>
+</footer>
+
+
+
+<script type="text/javascript">
+
+     // Ao clicar no botão "Solicitar" no modal de solicitar exames
+     // Essa função é acionada para tratar os dados do formulário e enviá-los ao servidor
+     function botaoSolicitarExames(){
+          var idPaciente = $("#pacienteSolicitar option:selected").val();
+          var idLab = $("#labSolicitar option:selected").val();
+          var idMedico = $('#loggedUserID').text();
+          var arrayExames = new Array();
+          $("#listaExamesSolicitados li").each(function(){
+               arrayExames.push( $(this).text() );
+          });
+          var data = moment().format("YYYY-MM-DD");
+
+          // Verifica se um paciente foi selecionado
+          if(idPaciente == ""){
+               $("#selecionePaciente").prop('hidden', false);
+               $("#pacienteSolicitar").focus();
+               return;
+          } else $("#selecionePaciente").prop('hidden', true);
+
+          // Esconde o MODAL
+          $("#modalSolicitarExames").modal("hide");
+     
+          //Prepara dados e envia por AJAX
+          var obj = { 
+               'data': data,
+               'idMedico': idMedico,
+               'idLab': idLab,
+               'pedidos': arrayExames
+          };
+          var url = "/exames/solicitar/" + idPaciente;
+          $.ajax({
+               url: url,
+               type: "PUT",
+               data: obj,
+               success: function(data, textStatus, jqXHR){
+                    console.log("Retorno do servidor: ", textStatus, data);
+                    
+                    var href = window.location.href;
+                    console.log("href: ", href);
+                    if(href.indexOf("?") > -1){
+                         var newURL = href.split("?")[0] + "?solicitar=success";
+                         window.location.href = newURL;
+                    }
+                    else{
+                         window.location.href += "?solicitar=success";
+                    }
+               },
+               error: function(jqXHR, textStatus, errorThrown){
+                    console.log("Erro ao solicitar exame(s)!");
+               }
+          });
+     }
+
+
+
+
+     $(document).ready(function(){
+
+          // Mostra ALERTAS no topo da página quando uma ação é realizada
+          let search = window.location.search;
+          if( (search.length > 0) && (search.charAt(0) == '?') ){
+               search = search.slice(1, search.length);               // Retira o ? do início
+               var params = search.split("&");                        // Separa os parâmetros
+
+               params.forEach( (value) => {
+                    let keyValue = value.split("=");
+                    if(keyValue[0] == "solicitar"){
+                         if(keyValue[1] == "success"){
+                              $("#divAlerts").html(
+                                   "<div class='alert alert-success alert-dismissible fade show' role='alert'>Exame(s) <strong>solicitado(s)</strong> para o paciente com sucesso.<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                              );
+                         }
+                    }
+               });
+          }
+
+
+          // Configurações da tabela dinâmica
+          $(".tabela-exames").fancyTable({
+               sortColumn: 0,
+               searchable: true,
+               globalSearch: true,
+               inputPlaceholder: ' Pesquisar...'
+          });
+
+
+
+          // Ações que acontecem ao abrir o MODAL PARA RECEITAR MEDICAMENTOS.
+          $('#modalSolicitarExames').on('shown.bs.modal', function(){
+               $("#pacienteSolicitar").empty().html("<option value=''>Pacientes...</option>");
+               $("#labSolicitar").empty().html("<option value=''>Laboratórios...</option>");
+               $("#listaExamesSolicitados").empty();
+               
+               
+               // Método GET para buscar nomes de todos os pacientes cadastrados
+               var url1 = "/usuarios/pacientes/min/get";
+               $.get(url1, function(data){
+                    data.forEach( (value, key) => {
+                         let nomeCompleto = value.nome.charAt(0).toUpperCase() + value.nome.slice(1) + " " + value.sobrenome.charAt(0).toUpperCase() + value.sobrenome.slice(1);
+                         let nascimento = value.nascimento.split("-");
+                         let nomePaciente = nomeCompleto + " - " + nascimento[2]+"/"+nascimento[1]+"/"+nascimento[0];
+                         $("#pacienteSolicitar").append("<option value='"+value.id+"'>"+nomePaciente+"</option>");
+                    });
+                    $("#pacienteSolicitar option[value='']").prop('disabled', true);
+                    
+                    // Pega todos os medicamentos selecionados
+                    var arrayExames = new Array();
+                    $("#tabelaExames input:checked").each(function(){
+                         arrayExames.push( $(this).attr('value') );
+                    });
+                    // Adiciona medicamentos selecionados na lista do MODAL
+                    arrayExames.forEach( (value, key) => {
+                         $("#listaExamesSolicitados").append("<li class='list-group-item'>"+value+"</li>");
+                    });
+               });
+
+
+               // Requisição GET para buscar nomes dos exames no banco de dados
+               var url2 = "/usuarios/labs/min/get";
+               $.get(url2, function(data){
+                    data.forEach( (value, key) => {
+                         $("#labSolicitar").append("<option value='"+value.id+"'>"+value.nome+"</option>");
+                    });
+                    $("#labSolicitar option[value='']").prop('disabled', true);
+               });
+          });
+     });
+</script>
+
+
+
+<!-- Popper.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<!-- Bootstrap JavaScript plugin -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>

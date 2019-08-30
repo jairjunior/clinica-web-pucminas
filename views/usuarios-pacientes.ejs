@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="description" content="Sistema de Gestão de Clínica Médica">
+     <meta name="author" content="Jair Dias de Oliveira Junior">
+     <meta name="keywords" content="PUC Minas,Pós-Graduação,Desenvolvimento de Aplicações Web, Aplicação Web, Sistema de Gestão">
+
+     <title>Usuários | Sistema de Gestão de Clínica Médica</title>
+
+     <!-- Bootstrap 4.3.1 CSS -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+     <!-- Font Awesome 5.8.1 -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+     <!-- Meus estilos -->
+     <link rel="stylesheet" type="text/css" href="/styles/usuarios.css">
+
+     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+     <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+     <![endif]-->
+
+     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+     <!-- jQuery fancyTable package v1.0.15 -->
+     <script src="https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js"></script>
+
+</head>
+<body>
+
+<!-- BARRA DE NAVEGAÇÃO superior -->
+<nav class="navbar navbar-expand-lg navbar-light">
+     <div class="container">
+          <span class="navbar-brand mb-0 h1 text-white">
+               <i class="fas fa-clinic-medical"></i> Clínica-Web
+          </span>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Mostrar Navegação">
+               <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="collapse navbar-collapse" id="navbarNav">
+               <ul class="navbar-nav">
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/agenda">AGENDA</a>
+                    </li>
+                    <li class="nav-item navbar-link">
+                         <a class="nav-link text-white" href="/medicamentos">MEDICAMENTOS</a>
+                    </li>
+                    <li class="nav-item active">
+                         <a class="nav-link text-white" href="/usuarios/pacientes">USUÁRIOS <span class="sr-only">(menu atual)</span></a>
+                    </li>
+                    <li class="nav-item dropdown navbar-link">
+                         <a class="nav-link dropdown-toggle navbar-logout" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <strong>LOGOUT</strong>
+                         </a>
+                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              <a class="dropdown-item" href="/logout">
+                                   <%= sessionData.nome +' ('+ sessionData.perfil.charAt(0).toUpperCase() + sessionData.perfil.slice(1) +') '; %>
+                                   <i class="fas fa-sign-out-alt"></i>
+                              </a>
+                         </div>
+                    </li>
+               </ul>
+          </div>
+     </div>
+</nav>
+
+
+<!-- CORPO PRINCIPAL DA PÁGINA -->
+<div class="container" id="containerBody">
+     
+
+     <!-- TÍTULO da página e breve explicação -->
+     <div class="heading">
+          <h2 class="text-center">
+               <i class="fas fa-users"></i>
+               Usuários
+          </h2>
+          <p class="text-center">
+               Pacientes e profissionais cadastrados no sistema.
+               <br/ >
+               Clique sobre o usuário desejado para obter mais informações.
+          </p>
+     </div>
+
+     
+     <!-- CAMPO DE BUSCA e BOTÃO para cadastrar profissionais -->
+     <div class="container box-add-btn row">
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+          <!-- BOTÃO -->
+          <div class="col-12 col-sm-6 col-lg-4">
+               <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#modalCadastrarPaciente">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastrar Paciente
+               </button>
+          </div>
+          <!-- div invisível -->
+          <div class="col-sm-3 col-lg-4"></div>
+     </div>
+
+
+
+     <!-- MODAL com formulário para cadastrar paciente -->
+     <div class="modal fade" id="modalCadastrarPaciente" tabindex="-1" role="dialog" aria-labelledby="modalCadastrarPaciLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalCadastrarPaciLabel">Cadastrar Paciente</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+
+                    <div class="modal-body">     
+                         <!-- FORMULÁRIO para CADASTRO de novo paciente -->
+                         <form role="form" action="/usuario/cadastrar" method="POST" id="formCadastroPaciente">
+
+                              <!-- Campo Perfil (valor fixo e escondido) -->
+                              <input type="text" name="perfil" id="inputPerfil" value="paciente" hidden>
+
+                              <!-- Campos Nome e Sobrenome -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-4">
+                                        <label for="inputNome">Nome:</label>
+                                        <input type="text" name="nome" id="inputNome" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-8">
+                                        <label for="inputSobrenome">Sobrenome:</label>
+                                        <input type="text" name="sobrenome" id="inputSobrenome" class="form-control" required>
+                                   </div>
+                              </div>
+
+                              <!-- Campo E-mail e Data de Nascimento -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-7">
+                                        <label for="inputEmail">E-mail:</label>
+                                        <input type="email" name="email" id="inputEmail" autocomplete="email" class="form-control" placeholder="nome@dominio.com.br" required>
+                                   </div>
+                                   <div class="form-group col-sm-5">
+                                        <label for="inputNascimento">Data de Nascimento:</label>
+                                        <input type="date" name="nascimento" id="inputNascimento" class="form-control" required>
+                                   </div>
+                              </div>
+
+                              <!-- Campo Telefone / Celular -->
+                              <div class="form-group">
+                                   <label for="inputTel">Telefone / Celular:</label>
+                                   <input type="text" name="telefone" id="inputTel" class="form-control" placeholder="(xx) 0000-0000">
+                              </div>
+
+                              <!-- Campo Sexo -->
+                              <div class="form-group">
+                              <legend>Sexo:</legend>
+                                   <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sexo" id="sexoMasc" value="masculino" required>
+                                        <label class="form-check-label" for="sexoMasc"> Masculino</label>
+                                   </div>
+                                   <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sexo" id="sexoFem" value="feminino">
+                                        <label class="form-check-label" for="sexoFem"> Feminino</label>
+                                   </div>
+                              </div>
+
+                              <!-- Campo Endereço -->
+                              <div class="form-group">
+                                   <label for="inputAddress">Endereço:</label>
+                                   <input type="text" name="logradouro" id="inputAddress" class="form-control" placeholder="Rua, avenida ou logradouro" required>
+                              </div>
+                              
+                              <!-- Campos Número, Bairro e Complemento-->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-3">
+                                        <label for="inputNum">Número:</label>
+                                        <input type="number" name="numero" id="inputNum" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-9">
+                                        <label for="inputBairro">Bairro:</label>
+                                        <input type="text" name="bairro" id="inputBairro" class="form-control" required>
+                                   </div>
+                              </div>
+
+                              <!-- Campos CEP / Cidade / UF -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-6">
+                                        <label for="inputCidade">Cidade:</label>
+                                        <input type="text" name="cidade" id="inputCidade" class="form-control" placeholder="" required>
+                                   </div>
+                                   <div class="form-group col-sm-3">
+                                        <label for="inputUF">UF:</label>
+                                        <select name="uf" id="inputUF" class="form-control" required>
+                                             <option value="">Escolha...</option>
+                                             <option value="AL">AL</option>
+                                             <option value="AM">AM</option>
+                                             <option value="BA">BA</option>
+                                             <option value="DF">DF</option>
+                                             <option value="GO">GO</option>
+                                             <option value="MG">MG</option>
+                                             <option value="RJ">RJ</option>
+                                             <option value="SC">SC</option>
+                                             <option value="SP">SP</option>
+                                             <option value="TO">TO</option>
+                                        </select>
+                                   </div>
+                                   <div class="form-group col-sm-3">
+                                        <label for="inputCEP">CEP:</label>
+                                        <input type="text" name="cep" id="inputCEP" class="form-control" placeholder="xxxxx-xxx" maxlength="9" required>
+                                   </div>
+                              </div>
+
+                              <!-- Campo Convênio -->
+                              <div class="form-group">
+                                   <label for="inputConvenio">Convênio:</label>
+                                   <input type="text" name="convenio" id="inputConvenio" class="form-control" placeholder="Convênio / Plano de Saúde" required>
+                              </div>
+
+                              <!-- Campo Senha -->
+                              <div class="form-group">
+                                   <label for="inputSenha">Senha:</label>
+                                   <input type="password" name="senha" id="inputSenha" autocomplete="current-password" class="form-control" placeholder="Utilize números e letras" required>
+                              </div>
+                         </form>
+                    </div>
+
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                         <button type="submit" class="btn btn-success" id="btnCadastrar" form="formCadastroPaciente">Cadastrar</button>
+                    </div>
+               </div>
+          </div>
+     </div>
+
+
+
+     <!-- ALERTAS para exclusão, edição e inserção de paciente -->
+     <div id="divAlerts">
+
+     </div>
+
+
+
+     <!-- ABAS com lista de pacientes e profissionais -->
+     <div id="menuTabs">
+          <ul class="nav nav-tabs">
+               <li class="nav-item">
+                    <a class="nav-link active" href="/usuarios/pacientes">
+                         <i class="fas fa-user-injured"></i>
+                         Pacientes
+                         <span class="sr-only">(aba atual)</span>
+                    </a>
+               </li>
+               <li class="nav-item">
+                    <a class="nav-link" href="/usuarios/profissionais">
+                         <i class="fas fa-user-md"></i>
+                         Profissionais
+                    </a>
+               </li>
+          </ul>
+
+
+          <!-- TABELA com lista de pacientes (gerada dinamicamente) -->
+          <div class="table-responsive-sm">
+               <table class="table tabela-usuarios">
+                    <thead>
+                         <tr>
+                              <th scope="col" hidden>ID</th>
+                              <th class="th-nome" scope="col">Nome</th>
+                              <th class="th-email" scope="col">E-mail</th>
+                              <th class="th-nascimento" scope="col">Data de Nascimento</th>
+                         </tr>
+                    </thead>
+                    <tbody>
+                         <% pacientes.forEach( (data, key) => { %>
+                              <% if(data.perfil != 'paciente') { %>
+                                   <% return; } %>
+                              <tr class="clickable-row" id="row_<%= key %>">
+                                   <td class="td-id" hidden><%= data._id %></td>
+                                   <td><%= data.nome + ' ' + data.sobrenome %></td>
+                                   <td><%= data.email %></td>
+                                   <td><%= data.nascimento %></td>
+                              </tr>
+                         <% }); %>
+                    </tbody>
+               </table>
+          </div><!--/table-responsive-->
+     </div><!--/menuTabs-->
+
+
+     <!-- MODAL com formulário para EDITAR dados de um paciente -->
+     <div class="modal fade" id="modalEditarPaciente" tabindex="-1" role="dialog" aria-labelledby="modalEditarPaciLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+               <div class="modal-content">
+                    <div class="modal-header">
+                         <h5 class="modal-title" id="modalEditarPaciLabel">Dados do Paciente</h5>
+                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                         </button>
+                    </div>
+     
+                    <div class="modal-body">     
+                         <!-- FORMULÁRIO para editar dados de um paciente -->
+                         <form role="form" action="" method="POST" id="formEditarPaciente">
+     
+                              <!-- Campo ID (escondido) -->
+                              <input type="text" name="id" id="editID" hidden>
+
+                              <!-- Campo Perfil (valor fixo e escondido) -->
+                              <input type="text" name="perfil" id="editPerfil" value="paciente" hidden>
+     
+                              <!-- Campos Nome e Sobrenome -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-4">
+                                        <label for="editNome">Nome:</label>
+                                        <input type="text" name="nome" id="editNome" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-8">
+                                        <label for="editSobrenome">Sobrenome:</label>
+                                        <input type="text" name="sobrenome" id="editSobrenome" class="form-control" required>
+                                   </div>
+                              </div>
+     
+                              <!-- Campo E-mail e Data de Nascimento -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-7">
+                                        <label for="editEmail">E-mail:</label>
+                                        <input type="email" name="email" id="editEmail" autocomplete="email" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-5">
+                                        <label for="editNascimento">Data de Nascimento:</label>
+                                        <input type="date" name="nascimento" id="editNascimento" class="form-control" required>
+                                   </div>
+                              </div>
+     
+                              <!-- Campo Telefone / Celular -->
+                              <div class="form-group">
+                                   <label for="editTel">Telefone / Celular:</label>
+                                   <input type="text" name="telefone" id="editTel" class="form-control" placeholder="(xx) 0000-0000">
+                              </div>
+     
+                              <!-- Campo Sexo -->
+                              <div class="form-group">
+                              <legend>Sexo:</legend>
+                                   <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editSexoMasc" value="masculino" required>
+                                        <label class="form-check-label" for="editSexoMasc"> Masculino</label>
+                                   </div>
+                                   <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sexo" id="editSexoFem" value="feminino">
+                                        <label class="form-check-label" for="editSexoFem"> Feminino</label>
+                                   </div>
+                              </div>
+     
+                              <!-- Campo Endereço -->
+                              <div class="form-group">
+                                   <label for="editAddress">Endereço:</label>
+                                   <input type="text" name="logradouro" id="editAddress" class="form-control" required>
+                              </div>
+                              
+                              <!-- Campos Número, Bairro e Complemento-->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-3">
+                                        <label for="editNum">Número:</label>
+                                        <input type="number" name="numero" id="editNum" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-9">
+                                        <label for="editBairro">Bairro:</label>
+                                        <input type="text" name="bairro" id="editBairro" class="form-control" required>
+                                   </div>
+                              </div>
+     
+                              <!-- Campos CEP / Cidade / UF -->
+                              <div class="form-row">
+                                   <div class="form-group col-sm-6">
+                                        <label for="editCidade">Cidade:</label>
+                                        <input type="text" name="cidade" id="editCidade" class="form-control" required>
+                                   </div>
+                                   <div class="form-group col-sm-3">
+                                        <label for="editUF">UF:</label>
+                                        <select name="uf" id="editUF" class="form-control" required>
+                                             <option value="">Escolha...</option>
+                                             <option value="AL">AL</option>
+                                             <option value="AM">AM</option>
+                                             <option value="BA">BA</option>
+                                             <option value="DF">DF</option>
+                                             <option value="GO">GO</option>
+                                             <option value="MG">MG</option>
+                                             <option value="RJ">RJ</option>
+                                             <option value="SC">SC</option>
+                                             <option value="SP">SP</option>
+                                             <option value="TO">TO</option>
+                                        </select>
+                                   </div>
+                                   <div class="form-group col-sm-3">
+                                        <label for="editCEP">CEP:</label>
+                                        <input type="text" name="cep" id="editCEP" class="form-control" maxlength="9" required>
+                                   </div>
+                              </div>
+     
+                              <!-- Campo Convênio -->
+                              <div class="form-group">
+                                   <label for="editConvenio">Convênio:</label>
+                                   <input type="text" name="convenio" id="editConvenio" class="form-control" required>
+                              </div>
+     
+                              <!-- Campo Senha -->
+                              <div class="form-group" id="senhaAtualGroup">
+                                   <label for="currentPassword">Senha atual:</label>
+                                   <input type="password" name="senha_atual" autocomplete="current-password" id="currentPassword" class="form-control">
+                              </div>
+                              <div class="form-group" id="novaSenhaGroup">
+                                   <label for="newPassword">Nova senha:</label>
+                                   <input type="password" name="nova_senha" autocomplete="new-password" id="newPassword" class="form-control">
+                              </div>
+                         </form>
+                    </div>
+     
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnFecharCancelar">Fechar</button>
+                         <button type="button" class="btn btn-info" id="btnEditar">Editar</button>
+                         <button type="button" class="btn btn-danger" id="btnExcluir">Excluir</button>
+                         <button type="submit" class="btn btn-success" id="btnSalvar" form="formEditarPaciente">Salvar</button>
+                    </div>
+
+               </div><!--/modal-content-->
+          </div><!--/modal-dialog-->
+     </div><!--/modal-->
+</div><!--/containerBody-->
+
+
+
+<!-- Rodapé da página -->
+<footer>
+	<p class="text-center">Copyright <i class="far fa-copyright"></i> 2019</p>
+	<p class="text-center">Jair Junior</p>
+</footer>
+
+
+
+<script type="text/javascript">
+     $(document).ready(function(){
+          
+          if(window.location.search == "?deleted=success"){
+               $("#divAlerts").html(
+                    "<div class='alert alert-danger alert-dismissible fade show' role='alert'>Paciente <strong>deletado com sucesso</strong> do Banco de Dados!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+               );
+          }
+          else if(window.location.search == "?created=success"){
+               $("#divAlerts").html(
+                    "<div class='alert alert-success alert-dismissible fade show' role='alert'>Paciente <strong>cadastrado com sucesso</strong> no Banco de Dados!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+               );
+          }
+          else if(window.location.search == "?edited=success"){
+               $("#divAlerts").html(
+                    "<div class='alert alert-success alert-dismissible fade show' role='alert'>Os dados do paciente <strong> foram editados com sucesso</strong>!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+               );
+          }
+
+          // Configurações da tabela dinâmica
+          $(".tabela-usuarios").fancyTable({
+               sortColumn: 0,
+               searchable: true,
+               globalSearch: true,
+               inputPlaceholder: ' Pesquisar...'
+          });
+
+
+          // MOSTRAR DADOS DO USUARIO / PACIENTE
+          // Quando clicar sobre uma linha da tabela que corresponde a um paciente,
+          // A identificação é feita através do seu ID, em um campo escondido na tabela
+          $(".clickable-row").click( function(){
+               var id = $(this).find(".td-id").text();
+               var url = "/usuario/get/" + id;
+
+               // Resgata dados do servidor, abre modal e preenche o formulário
+               $.get(url, function(data){
+                         $("#modalEditarPaciente").modal("show");
+                         // Campo de senhas (não implementado)
+                         $("currentPassword").prop("disabled", true);
+                         $("newPassword").prop("disabled", true);
+                         $("#senhaAtualGroup").remove();
+                         $("#novaSenhaGroup").remove();
+                         // Botões
+                         $("#btnFecharCancelar").text("Fechar");
+                         $("#btnEditar").show();
+                         $("#btnExcluir").hide();
+                         $("#btnSalvar").hide();
+
+                         // Preenche formulário
+                         $("#editID").val(data._id);
+                         $("#editNome").val(data.nome).prop("readonly", true);
+                         $("#editSobrenome").val(data.sobrenome).prop("readonly", true);
+                         $("#editEmail").val(data.email).prop("readonly", true);
+                         $("#editNascimento").val(data.nascimento).prop("readonly", true);
+                         $("#editTel").val(data.telefone).prop("readonly", true);
+                         if(data.sexo == "masculino")
+                              $("#editSexoMasc").prop("checked", true);
+                         else if(data.sexo == "feminino")
+                              $("#editSexoFem").prop("checked", true);
+                         $("#editSexoMasc").prop("disabled", true);
+                         $("#editSexoFem").prop("disabled", true);
+                         $("#editAddress").val(data.endereco.logradouro).prop("readonly", true);
+                         $("#editNum").val(data.endereco.numero).prop("readonly", true);
+                         $("#editBairro").val(data.endereco.bairro).prop("readonly", true);
+                         $("#editCidade").val(data.endereco.cidade).prop("readonly", true);
+                         $("#editUF").val(data.endereco.uf).prop("disabled", true);
+                         $("#editCEP").val(data.endereco.cep).prop("readonly", true);
+                         $("#editConvenio").val(data.convenio).prop("readonly", true);
+               })
+               .fail(function(err){
+                    console.log(err);
+                    $("#divAlerts").html(
+                         "<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Erro</strong> ao resgatar dados do paciente! <button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                    );
+               });
+          });
+
+
+          // FORMULÁRIO DE EDIÇÃO
+          // Quando clica no botão Editar, todos os campos ficam habilitados para a edição
+          // Os botões também são alterados Cancelar, Excluir e Salvar
+          $("#btnEditar").click(function() {
+               $("#editNome").prop("readonly", false);
+               $("#editSobrenome").prop("readonly", false);
+               $("#editEmail").prop("readonly", false);
+               $("#editNascimento").prop("readonly", false);
+               $("#editTel").prop("readonly", false);
+               $("#editSexoMasc").prop("disabled", false);
+               $("#editSexoFem").prop("disabled", false);
+               $("#editAddress").prop("readonly", false);
+               $("#editNum").prop("readonly", false);
+               $("#editBairro").prop("readonly", false);
+               $("#editCidade").prop("readonly", false);
+               $("#editUF").prop("disabled", false);
+               $("#editCEP").prop("readonly", false);
+               $("#editConvenio").prop("readonly", false);
+               // Botões
+               $("#btnFecharCancelar").text("Cancelar");
+               $("#btnEditar").hide();
+               $("#btnExcluir").show();
+               $("#btnSalvar").show();
+               // Por útimo, pega o ID do paciente e prepara o atributo action do Formulário Editar
+               // Pra quando salvar a edição, o formulário ser submetido para uma rota específica no servidor
+               let id = $("#editID").val();
+               let url = "/usuario/editar/" + id;
+               $("#formEditarPaciente").prop("action", url);
+          });
+
+
+          // Ao clicar em Excluir, cria uma URL com o ID do usuário desejado
+          // Faz uma requisição HTTP do tipo DELETE para excluir o usuário
+          // Se der erro, mostra um alert amarelo no topo da página
+          $("#btnExcluir").click( function(){
+               var id = $("#editID").val();
+
+               $.ajax({
+                    url: "/usuario/deletar/" + id,
+                    type: "DELETE",
+                    success: function(data, textStatus, jqXHR){
+                         $("#modalEditarPaciente").modal("hide");
+                         
+                         var href = window.location.href;
+                         if(href.indexOf("?") > -1){
+                              var newURL = href.split("?")[0] + "?deleted=success";
+                              window.location.href = newURL;
+                         }
+                         else{
+                              window.location.href += "?deleted=success";
+                         }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                         $("#modalEditarPaciente").modal("hide");
+                         $("#divAlerts").html(
+                              "<div class='alert alert-danger alert-dismissible fade show' role='alert'><strong>Erro</strong> ao deletar paciente do Banco de Dados! <button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>"
+                         );
+                    }
+               });
+          });
+
+     });
+</script>
+
+
+<!-- Popper.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<!-- Bootstrap JavaScript plugin -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>
