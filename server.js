@@ -8,7 +8,7 @@ const ObjectID           = require('mongodb').ObjectID;
 const jwt                = require('jsonwebtoken');
 const cookieParser       = require('cookie-parser');
 const app = express();
-//const uri = "mongodb://AdminDB:vW8j7yWkL5ts6ir@database-shard-00-00-h8kqw.mongodb.net:27017,database-shard-00-01-h8kqw.mongodb.net:27017,database-shard-00-02-h8kqw.mongodb.net:27017/test?ssl=true&replicaSet=DataBase-shard-0&authSource=admin&retryWrites=true";
+const uri = "mongodb://AdminDB:vW8j7yWkL5ts6ir@database-shard-00-00-h8kqw.mongodb.net:27017,database-shard-00-01-h8kqw.mongodb.net:27017,database-shard-00-02-h8kqw.mongodb.net:27017/test?ssl=true&replicaSet=DataBase-shard-0&authSource=admin&retryWrites=true";
 const SALT_ROUNDS = 10;
 const mySecretKeyForJWT = 'JWTsecretKEY2019';
 const cookieConfig = { httpOnly: true };
@@ -16,21 +16,19 @@ const PORT = process.env.PORT || 3000;
 process.env.NODE_ENV = 'production';
 
 
-app.listen(PORT, () => {
-     console.log('Servidor rodando na porta', PORT);
-});
 
-/*
 MongoClient.connect(uri, (err, client) => {
      if (err) return console.error('Não foi possível obter conexão com o Banco de Dados...', err);
      else console.log('Conectado ao Banco de Dados com sucesso!');
 
      // Cria uma nova coleção no banco de dados
      myDataBase = client.db('DataBase');
-
+     app.listen(PORT, () => {
+          console.log('Servidor rodando na porta', PORT);
+     });
      // O servidor só é iniciado quando o banco de dados estiver conectado
 });
-*/
+
 
 
 //---------------------------------------------------------------------------------------
