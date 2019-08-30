@@ -26,7 +26,7 @@ MongoClient.connect(uri, (err, client) => {
 
      // O servidor só é iniciado quando o banco de dados estiver conectado
      app.listen(PORT, () => {
-          console.log('Servidor rodando na porta ', PORT);
+          console.log('Servidor rodando na porta', PORT);
      });
 });
 
