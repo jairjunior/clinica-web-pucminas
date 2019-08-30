@@ -13,6 +13,8 @@ const SALT_ROUNDS = 10;
 const mySecretKeyForJWT = 'JWTsecretKEY2019';
 const cookieConfig = { httpOnly: true };
 const PORT = process.env.PORT || 3000;
+process.env.NODE_ENV = 'production';
+
 
 
 MongoClient.connect(uri, (err, client) => {
@@ -47,7 +49,7 @@ app.use(cookieParser());
 
 // Standard Error-Handler (manipulador de erro padrão)
 app.use( function(err, req, res, next){
-     if(err) console.error(err.stack);
+     if(err) res.send(err.stack);
      next();
 });
 
