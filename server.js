@@ -12,6 +12,7 @@ const uri = "mongodb://AdminDB:vW8j7yWkL5ts6ir@database-shard-00-00-h8kqw.mongod
 const SALT_ROUNDS = 10;
 const mySecretKeyForJWT = 'JWTsecretKEY2019';
 const cookieConfig = { httpOnly: true };
+const PORT = process.env.PORT || 3000;
 
 
 MongoClient.connect(uri, (err, client) => {
@@ -22,8 +23,8 @@ MongoClient.connect(uri, (err, client) => {
      myDataBase = client.db('DataBase');
 
      // O servidor só é iniciado quando o banco de dados estiver conectado
-     app.listen(3000, () => {
-          console.log('Servidor rodando na porta 3000...');
+     app.listen(PORT, () => {
+          console.log('Servidor rodando na porta ', PORT);
      });
 });
 
